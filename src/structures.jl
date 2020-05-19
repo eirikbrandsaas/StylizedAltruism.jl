@@ -61,7 +61,7 @@ mutable struct Polk
 
   function Polk(np::NumPar)
     c = [[fill(0.0,np.nx,np.nx,np.ny) for ia = 1:np.na-1]; [fill(0.0,np.nx,np.ny)]]
-    x′ = copy(c)
+    x′ = [[fill(0.0,np.nx,np.nx,np.ny) for ia = 1:np.na-1]; [fill(0.0,np.nx,np.ny)]]
 
     new(c,x′)
   end
