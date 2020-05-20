@@ -28,7 +28,7 @@ mutable struct NumPar
 
   Πy :: Array{Float64,2} # Probability for y' given y
 
-  function NumPar(;na=2, nx=11, ny=5 ,nxc=20, ntc=20, xmax = 10.0, ymin = 0.0, ymax = 2.0)
+  function NumPar(;na=2, nx=11, ny=5 ,nxc=20, ntc=20, xmax = 10.0, ymin = 0.5, ymax = 2.5)
     x_grd = range(1e-5,stop=xmax,length=nx)
     y_grd = range(ymin,stop=ymax,length=ny)
     xc_grd = range(minimum(x_grd),stop=maximum(x_grd),length=nxc)
