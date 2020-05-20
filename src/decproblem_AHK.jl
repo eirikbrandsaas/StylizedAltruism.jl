@@ -12,10 +12,10 @@ function SolveVk2!(M)
 end
 
 function SolveVp2!(M)
-  # gc_itp = []
   np = M.np
   mp = M.mp
-  gck_itp = [LinearInterpolation((np.x_grd,),M.gk.c[M.np.na][:,iyk],extrapolation_bc=Line()) for iyk = 1:np.ny]
+  gck_itp::Array{Interpolations.Extrapolation{Float64,1,Interpolations.GriddedInterpolation{Float64,1,Float64,Gridded{Linear},Tuple{Array{Float64,1}}},Gridded{Linear},Line{Nothing}},1} = 
+    [LinearInterpolation((np.x_grd,),M.gk.c[M.np.na][:,iyk],extrapolation_bc=Line()) for iyk = 1:np.ny]
   vtmp = fill(-Inf64,np.ntc)
   ia = M.np.na
   for (ixp,xp) in enumerate(M.np.x_grd)
@@ -47,8 +47,10 @@ function SolveVk1!(M)
   vtmp = fill(-Inf64,np.nxc)
   ia = M.np.na-1
 
-  gtp_itp = [LinearInterpolation((np.x_grd,),M.gp.t[ia+1][ixpn,:,iyk],extrapolation_bc=Line()) for ixpn = 1:np.nx, iyk = 1:np.ny]
-  Vk_itp =  [LinearInterpolation((np.x_grd,),M.Vk[ia+1][:,iyk],extrapolation_bc=Line()) for ixpn = 1:np.nx, iyk = 1:np.ny]
+  gtp_itp::Array{Interpolations.Extrapolation{Float64,1,Interpolations.GriddedInterpolation{Float64,1,Float64,Gridded{Linear},Tuple{Array{Float64,1}}},Gridded{Linear},Line{Nothing}},2} =
+    [LinearInterpolation((np.x_grd,),M.gp.t[ia+1][ixpn,:,iyk],extrapolation_bc=Line()) for ixpn = 1:np.nx, iyk = 1:np.ny]
+  Vk_itp::Array{Interpolations.Extrapolation{Float64,1,Interpolations.GriddedInterpolation{Float64,1,Float64,Gridded{Linear},Tuple{Array{Float64,1}}},Gridded{Linear},Line{Nothing}},2} =
+    [LinearInterpolation((np.x_grd,),M.Vk[ia+1][:,iyk],extrapolation_bc=Line()) for ixpn = 1:np.nx, iyk = 1:np.ny]
 
   for (ixpn,xp) in enumerate(M.np.x_grd)
     for (ixk,xk) in enumerate(M.np.x_grd)
@@ -82,8 +84,10 @@ function SolveVp1!(M)
   ia = M.np.na-1
 
   # gck_itp = [LinearInterpolation((np.x_grd,np.x_grd),M.gk.c[ia][:,:,iyk],extrapolation_bc=Line()) for iyk = 1:np.ny]
-  gxkn_itp = [LinearInterpolation((np.x_grd,np.x_grd),M.gk.x′[ia][:,:,iyk],extrapolation_bc=Line()) for iyk = 1:np.ny]
-  Vp_itp = [LinearInterpolation((np.x_grd,np.x_grd),M.Vp[ia+1][:,:,iyk],extrapolation_bc=Line()) for iyk = 1:np.ny]
+  gxkn_itp::Array{Interpolations.Extrapolation{Float64,2,Interpolations.GriddedInterpolation{Float64,2,Float64,Gridded{Linear},Tuple{Array{Float64,1},Array{Float64,1}}},Gridded{Linear},Line{Nothing}},1} =
+     [LinearInterpolation((np.x_grd,np.x_grd),M.gk.x′[ia][:,:,iyk],extrapolation_bc=Line()) for iyk = 1:np.ny]
+  Vp_itp::Array{Interpolations.Extrapolation{Float64,2,Interpolations.GriddedInterpolation{Float64,2,Float64,Gridded{Linear},Tuple{Array{Float64,1},Array{Float64,1}}},Gridded{Linear},Line{Nothing}},1} =
+     [LinearInterpolation((np.x_grd,np.x_grd),M.Vp[ia+1][:,:,iyk],extrapolation_bc=Line()) for iyk = 1:np.ny]
 
   for (ixp,xp) in enumerate(M.np.x_grd)
     for (ixk,xk) in enumerate(M.np.x_grd)
