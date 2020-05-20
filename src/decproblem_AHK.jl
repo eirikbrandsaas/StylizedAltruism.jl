@@ -3,8 +3,9 @@ function SolveVk2!(M)
   ia = M.np.na
   for (ixk,xk) in enumerate(M.np.x_grd)
     for (iyk,yk) in enumerate(M.np.y_grd)
+      wk = income(yk,ia,M.np)
       xkn = 0.0 # Don't save ion the last period
-      ck = ck_bc(xk,income(yk,ia,M.np),xkn,M.mp.rf)
+      ck = ck_bc(xk,wk,xkn,M.mp.rf)
       M.gk.c[ia][ixk,iyk] = ck
       M.gk.x′[ia][ixk,iyk] = xkn
       M.Vk[ia][ixk,iyk] = util(ck,M.mp.γ)
@@ -56,10 +57,11 @@ function SolveVk1!(M)
   for (ixpn,xp) in enumerate(M.np.x_grd)
     for (ixk,xk) in enumerate(M.np.x_grd)
       for (iyk,yk) in enumerate(M.np.y_grd)
+        wk = income(yk,ia,np)
         ## Loop over possible choices
         vtmp .= -Inf64
         for (ixkn,xkn) in enumerate(M.np.xc_grd)
-          ck = ck_bc(xk,income(yk,ia,np),xkn,mp.rf)
+          ck = ck_bc(xk,wk,xkn,mp.rf)
           if ck > 0.0 && xkn >= BorrConstr()
             vtmp[ixkn] = util(ck,mp.γ)
             for iykn = 1:np.ny
@@ -71,7 +73,7 @@ function SolveVk1!(M)
         imax = argmax(vtmp)
         xkn = M.np.xc_grd[imax]
         M.gk.x′[ia][ixpn,ixk,iyk] = xkn
-        M.gk.c[ia][ixpn,ixk,iyk] = ck_bc(xk,income(yk,ia,np),xkn,mp.rf)
+        M.gk.c[ia][ixpn,ixk,iyk] = ck_bc(xk,wk,xkn,mp.rf)
         M.Vk[ia][ixpn,ixk,iyk] = vtmp[imax]
       end
     end
@@ -93,13 +95,15 @@ function SolveVp1!(M)
   for (ixp,xp) in enumerate(M.np.x_grd)
     for (ixk,xk) in enumerate(M.np.x_grd)
       for (iyk,yk) in enumerate(M.np.y_grd)
-        ## Loop over possible choices
+        wk = income(yk,ia,np)
         vtmp .= -Inf64
+
+        ## Loop over possible choices
         for (ixpn,xpn) in enumerate(M.np.xc_grd)
           for (itp,tp) in enumerate(M.np.tc_grd)
           cp = cp_bc(xp,xpn,tp,mp.rf) #xp - xpn/(1.0 + mp.rf) - tp
           xkn = gxkn_itp[iyk](xpn,xk+tp)
-          ck = ck_bc(xk+tp,income(yk,ia,np),xkn,mp.rf)
+          ck = ck_bc(xk+tp,wk,xkn,mp.rf)
             if cp > 0.0 && xpn >= BorrConstr()
               vtmp[ixpn,itp] = util(cp,mp.γ) +  mp.η*util(ck,mp.γ)
               for iykn = 1:np.ny
