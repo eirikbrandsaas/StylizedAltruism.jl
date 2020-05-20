@@ -2,9 +2,10 @@
 function SolveVk2!(M)
   for (ixk,xk) in enumerate(M.np.x_grd)
     for (iyk,yk) in enumerate(M.np.y_grd)
-      ck = xk + yk
+      xkn = 0.0 # Don't save ion the last period
+      ck = ck_bc(xk,yk,xkn,M.mp.rf)
       M.gk.c[M.np.na][ixk,iyk] = ck
-      M.gk.x′[M.np.na][ixk,iyk] = 0.0
+      M.gk.x′[M.np.na][ixk,iyk] = xkn
       M.Vk[M.np.na][ixk,iyk] = util(ck,M.mp.γ)
     end
   end
@@ -22,8 +23,9 @@ function SolveVp2!(M)
       for (iyk,yk) in enumerate(M.np.y_grd)
         ## Loop over possible choices
         vtmp .= -Inf64
+        xpn = 0.0
         for (itp,tp) in enumerate(M.np.tc_grd)
-          cp = xp - tp
+          cp = cp_bc(xp,xpn,tp,mp.rf)
           if cp > 0.0
             ck = gck_itp[iyk](xk + tp)
             vtmp[itp] = util(cp,mp.γ) + mp.η*util(ck,mp.γ)
@@ -32,7 +34,7 @@ function SolveVp2!(M)
         imax = argmax(vtmp)
         tp = M.np.tc_grd[imax]
         M.gp.t[ia][ixp,ixk,iyk] = tp
-        M.gp.c[ia][ixp,ixk,iyk] = xp - tp
+        M.gp.c[ia][ixp,ixk,iyk] = cp_bc(xp,xpn,tp,mp.rf)
         M.Vp[ia][ixp,ixk,iyk] = vtmp[imax]
       end
     end
@@ -54,7 +56,7 @@ function SolveVk1!(M)
         ## Loop over possible choices
         vtmp .= -Inf64
         for (ixkn,xkn) in enumerate(M.np.xc_grd)
-          ck = xk + yk - xkn/(1.0 + mp.rf)
+          ck = ck_bc(xk,yk,xkn,mp.rf)
           if ck > 0.0 && xkn >= 0.0
             vtmp[ixkn] = util(ck,mp.γ)
             for iykn = 1:np.ny
@@ -66,7 +68,7 @@ function SolveVk1!(M)
         imax = argmax(vtmp)
         xkn = M.np.xc_grd[imax]
         M.gk.x′[ia][ixpn,ixk,iyk] = xkn
-        M.gk.c[ia][ixpn,ixk,iyk] = xk + yk - xkn/(1.0 + mp.rf)
+        M.gk.c[ia][ixpn,ixk,iyk] = ck_bc(xk,yk,xkn,mp.rf)
         M.Vk[ia][ixpn,ixk,iyk] = vtmp[imax]
       end
     end
@@ -90,7 +92,7 @@ function SolveVp1!(M)
         vtmp .= -Inf64
         for (ixpn,xpn) in enumerate(M.np.xc_grd)
           for (itp,tp) in enumerate(M.np.tc_grd)
-          cp = xp - xpn/(1.0 + mp.rf) - tp
+          cp = cp_bc(xp,xpn,tp,mp.rf) #xp - xpn/(1.0 + mp.rf) - tp
           xkn = gxkn_itp[iyk](xpn,xk+tp)
           ck = xk + yk - xkn/(1.0 + mp.rf)
 
@@ -106,7 +108,7 @@ function SolveVp1!(M)
         xpn = M.np.xc_grd[imax[1]]
         tp = M.np.tc_grd[imax[2]]
         M.gp.x′[ia][ixp,ixk,iyk] = xpn
-        M.gp.c[ia][ixp,ixk,iyk] = xp - xpn/(1.0 + mp.rf) - tp
+        M.gp.c[ia][ixp,ixk,iyk] = cp_bc(xp,xpn,tp,mp.rf)
         M.gp.t[ia][ixp,ixk,iyk] = tp
         M.Vp[ia][ixp,ixk,iyk] = vtmp[imax]
       end
