@@ -17,3 +17,7 @@ end
 function cp_bc(xp,xpn,tp,rf)
     cp = xp - tp - xpn/(1.0+rf)
 end
+
+function BorrConstr()
+    0.0 # Benchmark model has no-borrowing
+end

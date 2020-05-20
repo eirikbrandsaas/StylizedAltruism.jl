@@ -26,7 +26,7 @@ function SolveVp2!(M)
         xpn = 0.0
         for (itp,tp) in enumerate(M.np.tc_grd)
           cp = cp_bc(xp,xpn,tp,mp.rf)
-          if cp > 0.0
+          if cp > 0.0 && xpn >= BorrConstr()
             ck = gck_itp[iyk](xk + tp)
             vtmp[itp] = util(cp,mp.γ) + mp.η*util(ck,mp.γ)
           end
@@ -57,7 +57,7 @@ function SolveVk1!(M)
         vtmp .= -Inf64
         for (ixkn,xkn) in enumerate(M.np.xc_grd)
           ck = ck_bc(xk,yk,xkn,mp.rf)
-          if ck > 0.0 && xkn >= 0.0
+          if ck > 0.0 && xkn >= BorrConstr()
             vtmp[ixkn] = util(ck,mp.γ)
             for iykn = 1:np.ny
               tpn = gtp_itp[ixpn,iykn](xkn)
@@ -94,9 +94,8 @@ function SolveVp1!(M)
           for (itp,tp) in enumerate(M.np.tc_grd)
           cp = cp_bc(xp,xpn,tp,mp.rf) #xp - xpn/(1.0 + mp.rf) - tp
           xkn = gxkn_itp[iyk](xpn,xk+tp)
-          ck = xk + yk - xkn/(1.0 + mp.rf)
-
-            if cp > 0.0 && xpn >= 0.0
+          ck = ck_bc(xk,yk,xkn,mp.rf)
+            if cp > 0.0 && xpn >= BorrConstr()
               vtmp[ixpn,itp] = util(cp,mp.γ) +  mp.η*util(ck,mp.γ)
               for iykn = 1:np.ny
                 vtmp[ixpn,itp] += mp.β*np.Πy[iykn,iyk]*Vp_itp[iykn](xpn,xkn)
