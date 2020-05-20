@@ -25,6 +25,7 @@ mutable struct NumPar
   y_grd :: Vector{Float64} # Stategrid (only for kids)
   xc_grd :: Vector{Float64} # Choicegrid (common for kids and parents (for simplicity))
   tc_grd :: Vector{Float64} # Choicegrid (only for parents)
+  inc_grd :: Vector{Float64}
 
   Πy :: Array{Float64,2} # Probability for y' given y
 
@@ -39,7 +40,9 @@ mutable struct NumPar
       Πy = [2/3 1/3 0; 1/3 1/3 1/3; 0 1/3 2/3]
     end
 
-    new(na,nx, ny, nxc, ntc, x_grd, y_grd, xc_grd, tc_grd, Πy)
+    inc_grd = range(1.,stop = 1.0,length=na)
+
+    new(na,nx, ny, nxc, ntc, x_grd, y_grd, xc_grd, tc_grd, inc_grd, Πy)
   end
 end
 

@@ -10,8 +10,8 @@ function xpn(xp,cp,tp,rf)
     xpn = (xp - cp - tp)*(1.0+rf)
 end
 
-function ck_bc(xk,yk,xkn,rf)
-    ck = xk + yk - xkn/(1.0 + rf)
+function ck_bc(xk,wk,xkn,rf)
+    ck = xk + wk - xkn/(1.0 + rf)
 end
 
 function cp_bc(xp,xpn,tp,rf)
@@ -20,4 +20,8 @@ end
 
 function BorrConstr()
     0.0 # Benchmark model has no-borrowing
+end
+
+function income(yk::Real,ia::Int,np::NumPar)
+    wage = yk*np.inc_grd[ia]
 end
