@@ -9,7 +9,7 @@ mutable struct ModPar
   rf :: Float64
 
 
-  function ModPar(β=0.92, γ=1.5, η=0.3, ξ = 0.10, χ = .0, rf = 0.0)
+  function ModPar(;β=0.92, γ=1.5, η=0.3, ξ = 0.10, χ = .0, rf = 0.0)
     new(β, γ, η, ξ, χ, rf)
   end
 
@@ -35,6 +35,9 @@ mutable struct NumPar
     tc_grd = range(0.0,stop=maximum(x_grd),length=ntc)
 
     Πy = fill(1.0/ny,(ny,ny))
+    if ny == 3
+      Πy = [2/3 1/3 0; 1/3 1/3 1/3; 0 1/3 2/3]
+    end
 
     new(na,nx, ny, nxc, ntc, x_grd, y_grd, xc_grd, tc_grd, Πy)
   end
