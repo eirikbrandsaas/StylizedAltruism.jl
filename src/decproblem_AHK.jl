@@ -99,7 +99,7 @@ function SolveVp1!(M)
           for (itp,tp) in enumerate(M.np.tc_grd)
           cp = cp_bc(xp,xpn,tp,mp.rf) #xp - xpn/(1.0 + mp.rf) - tp
           xkn = gxkn_itp[iyk](xpn,xk+tp)
-          ck = ck_bc(xk,income(yk,ia,np),xkn,mp.rf)
+          ck = ck_bc(xk+tp,income(yk,ia,np),xkn,mp.rf)
             if cp > 0.0 && xpn >= BorrConstr()
               vtmp[ixpn,itp] = util(cp,mp.γ) +  mp.η*util(ck,mp.γ)
               for iykn = 1:np.ny
