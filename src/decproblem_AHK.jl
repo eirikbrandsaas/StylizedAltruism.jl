@@ -120,4 +120,6 @@ function SolveAHK!(M)
   SolveVp2!(M)
   SolveVk1!(M)
   SolveVp1!(M)
+
+  TestNumericalSolution(M) # Function that tests for numerical issues
 end
