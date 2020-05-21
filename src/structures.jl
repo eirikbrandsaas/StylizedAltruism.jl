@@ -32,7 +32,7 @@ mutable struct NumPar
 
   Πy :: Array{Float64,2} # Probability for y' given y
 
-  function NumPar(;nh=1,na=2, nx=11, ny=5 ,nxc=20, ntc=20, xmax = 10.0, ymin = 0.5, ymax = 2.5)
+  function NumPar(;nh=1,na=2, nx=11, ny=5 ,nxc=20, ntc=20, xmax = 10.0, ymin = 0.5, ymax = 2.5,hmax = 1.0)
     x_grd = range(1e-5,stop=xmax,length=nx)
     if ny > 1
       y_grd = range(ymin,stop=ymax,length=ny)
@@ -49,7 +49,7 @@ mutable struct NumPar
 
     inc_grd = range(1.,stop = 1.0,length=na)
     if nh > 1
-      h_grd = range(minimum(x_grd),stop=maximum(x_grd)/2,length=nh)
+      h_grd = range(minimum(x_grd),stop=hmax,length=nh)
     else
       h_grd = range(minimum(x_grd),stop=minimum(x_grd),length=nh)
     end
@@ -77,12 +77,15 @@ end
 mutable struct Polk
   c :: Vector{Array{Float64}}
   x′ :: Vector{Array{Float64}}
+  h :: Vector{Array{Float64}}
+  disc :: Vector{Array{Int64}}
 
   function Polk(np::NumPar)
-    c = [[fill(0.0,np.nx,np.nx,np.ny) for ia = 1:np.na-1]; [fill(0.0,np.nx,np.ny,np.nh)]]
-    x′ = [[fill(0.0,np.nx,np.nx,np.ny) for ia = 1:np.na-1]; [fill(0.0,np.nx,np.ny,np.nh)]]
-
-    new(c,x′)
+    c = [[fill(-Inf64,np.nx,np.nx,np.ny,np.nh) for ia = 1:np.na-1]; [fill(-Inf64,np.nx,np.ny,np.nh,np.nh)]]
+    x′ = [[fill(0.0,np.nx,np.nx,np.ny,np.nh) for ia = 1:np.na-1]; [fill(0.0,np.nx,np.ny,np.nh,np.nh)]]
+    h = [[fill(0.0,np.nx,np.nx,np.ny,np.nh) for ia = 1:np.na-1]; [fill(0.0,np.nx,np.ny,np.nh,np.nh)]]
+    disc = [[fill(0,np.nx,np.nx,np.ny) for ia = 1:np.na-1]; [fill(0,np.nx,np.ny,np.nh)]]
+    new(c,x′,h,disc)
   end
 end
 

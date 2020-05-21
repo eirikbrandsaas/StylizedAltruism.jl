@@ -3,15 +3,33 @@ function SolveVk2!(M)
   np = M.np
   mp = M.mp
   ia = np.na
+  vtmp = fill(-Inf64,np.nh)
   for (ixk,xk) in enumerate(np.x_grd)
     for (iyk,yk) in enumerate(np.y_grd)
       for (ihk,hk) in enumerate(np.h_grd)
         wk = income(yk,ia,np)
-        xkn = 0.0 # Don't save ion the last period
-        ck = ck_bc(xk,wk,xkn,mp.rf)
-        M.gk.c[ia][ixk,iyk,ihk] = ck
-        M.gk.x′[ia][ixk,iyk,ihk] = xkn
-        M.Vk[ia][ixk,iyk,ihk] = utilk(ck,0.0,mp.γ,mp.ξ)
+        xkn = 0.0 # Don't save in the last period
+        vtmp .= -Inf64
+        temp =  rand()
+        for (ihkn,hkn) in enumerate(np.h_grd)
+          ck = ck_bc(xk,wk,xkn,hk,hkn,mp.rf,mp.κ)
+
+
+          M.gk.c[ia][ixk,iyk,ihk,ihkn] = ck
+          M.gk.x′[ia][ixk,iyk,ihk,ihkn] = xkn
+
+          M.gk.h[ia][ixk,iyk,ihk,ihkn] = hkn
+          if temp < 0.01
+            println([ixk,iyk,ihk," ",hkn,ihkn," ",round.([ck,utilk(ck,hkn,mp.γ,mp.ξ)],digits=2)])
+          end
+          if ck > 0.0
+            vtmp[ihkn] = utilk(ck,hkn,mp.γ,mp.ξ)
+          end
+        end
+
+        imax = argmax(vtmp)
+        M.gk.disc[ia][ixk,iyk,ihk] = imax
+        M.Vk[ia][ixk,iyk,ihk] = vtmp[imax]
       end
     end
   end
@@ -135,9 +153,9 @@ end
 
 function SolveAHK!(M)
   SolveVk2!(M)
-  SolveVp2!(M)
-  SolveVk1!(M)
-  SolveVp1!(M)
+  # SolveVp2!(M)
+  # SolveVk1!(M)
+  # SolveVp1!(M)
 
   TestNumericalSolution(M) # Function that tests for numerical issues
 end
