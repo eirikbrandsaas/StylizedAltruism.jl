@@ -55,10 +55,10 @@ function SolveVk1!(M)
   vtmp = fill(-Inf64,np.nxc)
   ia = M.np.na-1
 
-  gtp_itp::Array{Interpolations.Extrapolation{Float64,1,Interpolations.GriddedInterpolation{Float64,1,Float64,Gridded{Linear},Tuple{Array{Float64,1}}},Gridded{Linear},Line{Nothing}},2} =
-    [LinearInterpolation((np.x_grd,),M.gp.t[ia+1][ixpn,:,iyk],extrapolation_bc=Line()) for ixpn = 1:np.nx, iyk = 1:np.ny]
-  Vk_itp::Array{Interpolations.Extrapolation{Float64,1,Interpolations.GriddedInterpolation{Float64,1,Float64,Gridded{Linear},Tuple{Array{Float64,1}}},Gridded{Linear},Line{Nothing}},1} =
-    [LinearInterpolation((np.x_grd,),M.Vk[ia+1][:,iyk],extrapolation_bc=Line()) for iyk = 1:np.ny]
+  gtp_itp::Array{Interpolations.Extrapolation{Float64,1,Interpolations.GriddedInterpolation{Float64,1,Float64,Gridded{Linear},Tuple{Array{Float64,1}}},Gridded{Linear},Line{Nothing}},3} =
+    [LinearInterpolation((np.x_grd,),M.gp.t[ia+1][ixpn,:,iyk,ihk],extrapolation_bc=Line()) for ixpn = 1:np.nx, iyk = 1:np.ny, ihk = 1:np.nh]
+  Vk_itp::Array{Interpolations.Extrapolation{Float64,1,Interpolations.GriddedInterpolation{Float64,1,Float64,Gridded{Linear},Tuple{Array{Float64,1}}},Gridded{Linear},Line{Nothing}},2} =
+    [LinearInterpolation((np.x_grd,),M.Vk[ia+1][:,iyk,ihk],extrapolation_bc=Line()) for iyk = 1:np.ny, ihk = 1:np.nh]
 
   for (ixpn,xp) in enumerate(np.x_grd)
     for (ixk,xk) in enumerate(np.x_grd)
@@ -67,12 +67,14 @@ function SolveVk1!(M)
         ## Loop over possible choices
         vtmp .= -Inf64
         for (ixkn,xkn) in enumerate(M.np.xc_grd)
+          ihkn = 1
+          hkn = np.h_grd[ihkn]
           ck = ck_bc(xk,wk,xkn,mp.rf)
           if ck > 0.0 && xkn >= BorrConstr()
-            vtmp[ixkn] = utilk(ck,0.0,mp.γ,mp.ξ)
+            vtmp[ixkn] = utilk(ck,hkn,mp.γ,mp.ξ)
             for iykn = 1:np.ny
-              tpn = gtp_itp[ixpn,iykn](xkn)
-              vtmp[ixkn] += mp.β*np.Πy[iykn,iyk]*Vk_itp[iykn](xkn + tpn)
+              tpn = gtp_itp[ixpn,iykn,ihkn](xkn)
+              vtmp[ixkn] += mp.β*np.Πy[iykn,iyk]*Vk_itp[iykn,ihkn](xkn + tpn)
             end
           end
         end
