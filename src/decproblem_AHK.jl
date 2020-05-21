@@ -8,7 +8,7 @@ function SolveVk2!(M)
       ck = ck_bc(xk,wk,xkn,M.mp.rf)
       M.gk.c[ia][ixk,iyk] = ck
       M.gk.x′[ia][ixk,iyk] = xkn
-      M.Vk[ia][ixk,iyk] = util(ck,M.mp.γ)
+      M.Vk[ia][ixk,iyk] = utilk(ck,0.0,M.mp.γ,M.mp.ξ)
     end
   end
 end
@@ -30,7 +30,7 @@ function SolveVp2!(M)
           cp = cp_bc(xp,xpn,tp,mp.rf)
           if cp > 0.0 && xpn >= BorrConstr()
             ck = gck_itp[iyk](xk + tp)
-            vtmp[itp] = util(cp,mp.γ) + mp.η*util(ck,mp.γ)
+            vtmp[itp] = utilp(cp,mp.γ) + mp.η*utilk(ck,0.0,mp.γ,mp.ξ)
           end
         end
         imax = argmax(vtmp)
@@ -63,7 +63,7 @@ function SolveVk1!(M)
         for (ixkn,xkn) in enumerate(M.np.xc_grd)
           ck = ck_bc(xk,wk,xkn,mp.rf)
           if ck > 0.0 && xkn >= BorrConstr()
-            vtmp[ixkn] = util(ck,mp.γ)
+            vtmp[ixkn] = utilk(ck,0.0,mp.γ,mp.ξ)
             for iykn = 1:np.ny
               tpn = gtp_itp[ixpn,iykn](xkn)
               vtmp[ixkn] += mp.β*np.Πy[iykn,iyk]*Vk_itp[iykn](xkn + tpn)
@@ -105,7 +105,7 @@ function SolveVp1!(M)
           xkn = gxkn_itp[iyk](xpn,xk+tp)
           ck = ck_bc(xk+tp,wk,xkn,mp.rf)
             if cp > 0.0 && xpn >= BorrConstr()
-              vtmp[ixpn,itp] = util(cp,mp.γ) +  mp.η*util(ck,mp.γ)
+              vtmp[ixpn,itp] = utilp(cp,mp.γ) +  mp.η*utilk(ck,0.0,mp.γ,mp.ξ)
               for iykn = 1:np.ny
                 vtmp[ixpn,itp] += mp.β*np.Πy[iykn,iyk]*Vp_itp[iykn](xpn,xkn)
               end
