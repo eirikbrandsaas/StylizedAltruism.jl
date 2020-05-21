@@ -28,7 +28,7 @@ function SolveVk2!(M)
         end
 
         imax = argmax(vtmp)
-        M.gk.disc[ia][ixk,iyk,ihk] = imax
+        M.gk.disc[ia][ixk,iyk,ihk,imax] = 1
         M.Vk[ia][ixk,iyk,ihk] = vtmp[imax]
       end
     end
@@ -38,8 +38,10 @@ end
 function SolveVp2!(M)
   np = M.np
   mp = M.mp
-  gck_itp::Array{Interpolations.Extrapolation{Float64,1,Interpolations.GriddedInterpolation{Float64,1,Float64,Gridded{Linear},Tuple{Array{Float64,1}}},Gridded{Linear},Line{Nothing}},2} =
-    [LinearInterpolation((np.x_grd,),M.gk.c[M.np.na][:,iyk,ihk],extrapolation_bc=Line()) for iyk = 1:np.ny,ihk = 1:np.nh]
+  gck_itp::Array{Interpolations.Extrapolation{Float64,1,Interpolations.GriddedInterpolation{Float64,1,Float64,Gridded{Linear},Tuple{Array{Float64,1}}},Gridded{Linear},Line{Nothing}},3} =
+    [LinearInterpolation((np.x_grd,),M.gk.c[M.np.na][:,iyk,ihk,ihkn],extrapolation_bc=Line()) for iyk = 1:np.ny,ihk = 1:np.nh, ihkn = 1:np.nh]
+  gdisck_itp::Array{Interpolations.Extrapolation{Float64,1,Interpolations.GriddedInterpolation{Float64,1,Float64,Gridded{Linear},Tuple{Array{Float64,1}}},Gridded{Linear},Line{Nothing}},3} =
+    [LinearInterpolation((np.x_grd,),Float64.(M.gk.disc[M.np.na][:,iyk,ihk,ihkn]),extrapolation_bc=Line()) for iyk = 1:np.ny,ihk = 1:np.nh, ihkn = 1:np.nh]
   vtmp = fill(-Inf64,np.ntc)
   ia = M.np.na
   for (ixp,xp) in enumerate(np.x_grd)
@@ -50,10 +52,15 @@ function SolveVp2!(M)
         vtmp .= -Inf64
         xpn = 0.0
         for (itp,tp) in enumerate(M.np.tc_grd)
-          cp = cp_bc(xp,xpn,tp,mp.rf)
-          if cp > 0.0 && xpn >= BorrConstr()
-            ck = gck_itp[iyk](xk + tp)
-            vtmp[itp] = utilp(cp,mp.γ) + mp.η*utilk(ck,0.0,mp.γ,mp.ξ)
+          for (ihkn,hkn) in enumerate(np.h_grd) # We loop over all the possible discrete housing choices..
+            prob = gdisck_itp[iyk,ihk,ihkn](xk + tp) # And then find the probability that this choice is made!
+            @assert prob >= 0.0
+            @assert prob <= 1.0
+            cp = cp_bc(xp,xpn,tp,mp.rf)
+            if cp > 0.0 && xpn >= BorrConstr() && prob > 0
+              ck = gck_itp[iyk,ihk,ihkn](xk + tp)
+              vtmp[itp] = prob*(utilp(cp,mp.γ) + mp.η*utilk(ck,hkn,mp.γ,mp.ξ))
+            end
           end
         end
         imax = argmax(vtmp)
@@ -153,7 +160,8 @@ end
 
 function SolveAHK!(M)
   SolveVk2!(M)
-  # SolveVp2!(M)
+  @assert minimum(M.Vk[2])  > -Inf64
+  SolveVp2!(M)
   # SolveVk1!(M)
   # SolveVp1!(M)
 
