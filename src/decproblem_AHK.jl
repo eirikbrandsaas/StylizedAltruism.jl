@@ -51,8 +51,8 @@ function SolveVk1!(M)
 
   gtp_itp::Array{Interpolations.Extrapolation{Float64,1,Interpolations.GriddedInterpolation{Float64,1,Float64,Gridded{Linear},Tuple{Array{Float64,1}}},Gridded{Linear},Line{Nothing}},2} =
     [LinearInterpolation((np.x_grd,),M.gp.t[ia+1][ixpn,:,iyk],extrapolation_bc=Line()) for ixpn = 1:np.nx, iyk = 1:np.ny]
-  Vk_itp::Array{Interpolations.Extrapolation{Float64,1,Interpolations.GriddedInterpolation{Float64,1,Float64,Gridded{Linear},Tuple{Array{Float64,1}}},Gridded{Linear},Line{Nothing}},2} =
-    [LinearInterpolation((np.x_grd,),M.Vk[ia+1][:,iyk],extrapolation_bc=Line()) for ixpn = 1:np.nx, iyk = 1:np.ny]
+  Vk_itp::Array{Interpolations.Extrapolation{Float64,1,Interpolations.GriddedInterpolation{Float64,1,Float64,Gridded{Linear},Tuple{Array{Float64,1}}},Gridded{Linear},Line{Nothing}},1} =
+    [LinearInterpolation((np.x_grd,),M.Vk[ia+1][:,iyk],extrapolation_bc=Line()) for iyk = 1:np.ny]
 
   for (ixpn,xp) in enumerate(M.np.x_grd)
     for (ixk,xk) in enumerate(M.np.x_grd)
