@@ -1,14 +1,18 @@
 
 function SolveVk2!(M)
-  ia = M.np.na
-  for (ixk,xk) in enumerate(M.np.x_grd)
-    for (iyk,yk) in enumerate(M.np.y_grd)
-      wk = income(yk,ia,M.np)
-      xkn = 0.0 # Don't save ion the last period
-      ck = ck_bc(xk,wk,xkn,M.mp.rf)
-      M.gk.c[ia][ixk,iyk] = ck
-      M.gk.x′[ia][ixk,iyk] = xkn
-      M.Vk[ia][ixk,iyk] = utilk(ck,0.0,M.mp.γ,M.mp.ξ)
+  np = M.np
+  mp = M.mp
+  ia = np.na
+  for (ixk,xk) in enumerate(np.x_grd)
+    for (iyk,yk) in enumerate(np.y_grd)
+      for (ihk,hk) in enumerate(np.h_grd)
+        wk = income(yk,ia,np)
+        xkn = 0.0 # Don't save ion the last period
+        ck = ck_bc(xk,wk,xkn,mp.rf)
+        M.gk.c[ia][ixk,iyk,ihk] = ck
+        M.gk.x′[ia][ixk,iyk,ihk] = xkn
+        M.Vk[ia][ixk,iyk,ihk] = utilk(ck,0.0,mp.γ,mp.ξ)
+      end
     end
   end
 end
@@ -16,13 +20,14 @@ end
 function SolveVp2!(M)
   np = M.np
   mp = M.mp
-  gck_itp::Array{Interpolations.Extrapolation{Float64,1,Interpolations.GriddedInterpolation{Float64,1,Float64,Gridded{Linear},Tuple{Array{Float64,1}}},Gridded{Linear},Line{Nothing}},1} =
-    [LinearInterpolation((np.x_grd,),M.gk.c[M.np.na][:,iyk],extrapolation_bc=Line()) for iyk = 1:np.ny]
+  gck_itp::Array{Interpolations.Extrapolation{Float64,1,Interpolations.GriddedInterpolation{Float64,1,Float64,Gridded{Linear},Tuple{Array{Float64,1}}},Gridded{Linear},Line{Nothing}},2} =
+    [LinearInterpolation((np.x_grd,),M.gk.c[M.np.na][:,iyk,ihk],extrapolation_bc=Line()) for iyk = 1:np.ny,ihk = 1:np.nh]
   vtmp = fill(-Inf64,np.ntc)
   ia = M.np.na
-  for (ixp,xp) in enumerate(M.np.x_grd)
-    for (ixk,xk) in enumerate(M.np.x_grd)
-      for (iyk,yk) in enumerate(M.np.y_grd)
+  for (ixp,xp) in enumerate(np.x_grd)
+    for (ixk,xk) in enumerate(np.x_grd)
+      for (iyk,yk) in enumerate(np.y_grd)
+        for (ihk,hk) in enumerate(np.h_grd)
         ## Loop over possible choices
         vtmp .= -Inf64
         xpn = 0.0
@@ -35,9 +40,10 @@ function SolveVp2!(M)
         end
         imax = argmax(vtmp)
         tp = M.np.tc_grd[imax]
-        M.gp.t[ia][ixp,ixk,iyk] = tp
-        M.gp.c[ia][ixp,ixk,iyk] = cp_bc(xp,xpn,tp,mp.rf)
-        M.Vp[ia][ixp,ixk,iyk] = vtmp[imax]
+        M.gp.t[ia][ixp,ixk,iyk,ihk] = tp
+        M.gp.c[ia][ixp,ixk,iyk,ihk] = cp_bc(xp,xpn,tp,mp.rf)
+        M.Vp[ia][ixp,ixk,iyk,ihk] = vtmp[imax]
+        end
       end
     end
   end
@@ -54,9 +60,9 @@ function SolveVk1!(M)
   Vk_itp::Array{Interpolations.Extrapolation{Float64,1,Interpolations.GriddedInterpolation{Float64,1,Float64,Gridded{Linear},Tuple{Array{Float64,1}}},Gridded{Linear},Line{Nothing}},2} =
     [LinearInterpolation((np.x_grd,),M.Vk[ia+1][:,iyk],extrapolation_bc=Line()) for ixpn = 1:np.nx, iyk = 1:np.ny]
 
-  for (ixpn,xp) in enumerate(M.np.x_grd)
-    for (ixk,xk) in enumerate(M.np.x_grd)
-      for (iyk,yk) in enumerate(M.np.y_grd)
+  for (ixpn,xp) in enumerate(np.x_grd)
+    for (ixk,xk) in enumerate(np.x_grd)
+      for (iyk,yk) in enumerate(np.y_grd)
         wk = income(yk,ia,np)
         ## Loop over possible choices
         vtmp .= -Inf64
