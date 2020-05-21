@@ -77,6 +77,21 @@ mutable struct Polk
   end
 end
 
+
+mutable struct switches
+
+  family :: Bool
+  housing :: Bool
+  incomerisk :: Bool
+  incomes :: Bool
+
+  function switches(;family=false, housing=false, incomerisk=false,incomes=false)
+
+  new(family, housing, incomerisk,incomes)
+  end
+end
+
+
 mutable struct Model
   Vk :: Vector{Array{Float64}}
   Vp :: Vector{Array{Float64}}
@@ -87,7 +102,9 @@ mutable struct Model
   np :: NumPar
   mp :: ModPar
 
-  function Model(np::NumPar,mp::ModPar)
+  switch ::  switches
+
+  function Model(np::NumPar,mp::ModPar,switch::switches)
 
     Vk =  [[fill(-Inf64,np.nx,np.nx,np.ny) for ia = 1:np.na-1]; [fill(-Inf64,np.nx,np.ny)]]
     Vp =  [fill(-Inf64,np.nx,np.nx,np.ny) for ia = 1:np.na]
@@ -95,7 +112,9 @@ mutable struct Model
     gk = Polk(np)
     gp = Polp(np)
 
-    new(Vk, Vp, gk ,gp, np, mp)
+    switch = switch
+
+    new(Vk, Vp, gk ,gp, np, mp, switch)
   end
 
 end
