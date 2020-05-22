@@ -118,10 +118,12 @@ function SolveVp1!(M)
   ia = M.np.na-1
 
   # gck_itp = [LinearInterpolation((np.x_grd,np.x_grd),M.gk.c[ia][:,:,iyk],extrapolation_bc=Line()) for iyk = 1:np.ny]
-  gxkn_itp::Array{Interpolations.Extrapolation{Float64,2,Interpolations.GriddedInterpolation{Float64,2,Float64,Gridded{Linear},Tuple{Array{Float64,1},Array{Float64,1}}},Gridded{Linear},Line{Nothing}},1} =
-     [LinearInterpolation((np.x_grd,np.x_grd),M.gk.x′[ia][:,:,iyk],extrapolation_bc=Line()) for iyk = 1:np.ny]
-  Vp_itp::Array{Interpolations.Extrapolation{Float64,2,Interpolations.GriddedInterpolation{Float64,2,Float64,Gridded{Linear},Tuple{Array{Float64,1},Array{Float64,1}}},Gridded{Linear},Line{Nothing}},1} =
-     [LinearInterpolation((np.x_grd,np.x_grd),M.Vp[ia+1][:,:,iyk],extrapolation_bc=Line()) for iyk = 1:np.ny]
+  gxkn_itp::Array{Interpolations.Extrapolation{Float64,2,Interpolations.GriddedInterpolation{Float64,2,Float64,Gridded{Linear},Tuple{Array{Float64,1},Array{Float64,1}}},Gridded{Linear},Line{Nothing}},2} =
+     [LinearInterpolation((np.x_grd,np.x_grd),M.gk.x′[ia][:,:,iyk,ihkn],extrapolation_bc=Line()) for iyk = 1:np.ny, ihkn = 1:np.nh]
+  gdisck_itp::Array{Interpolations.Extrapolation{Float64,2,Interpolations.GriddedInterpolation{Float64,2,Float64,Gridded{Linear},Tuple{Array{Float64,1},Array{Float64,1}}},Gridded{Linear},Line{Nothing}},2} =
+     [LinearInterpolation((np.x_grd,np.x_grd),Float64.(M.gk.disc[ia][:,:,iyk,ihkn]),extrapolation_bc=Line()) for iyk = 1:np.ny, ihkn = 1:np.nh]
+  Vp_itp::Array{Interpolations.Extrapolation{Float64,2,Interpolations.GriddedInterpolation{Float64,2,Float64,Gridded{Linear},Tuple{Array{Float64,1},Array{Float64,1}}},Gridded{Linear},Line{Nothing}},2} =
+     [LinearInterpolation((np.x_grd,np.x_grd),M.Vp[ia+1][:,:,iyk,ihkn],extrapolation_bc=Line()) for iyk = 1:np.ny, ihkn = 1:np.nh]
 
   for (ixp,xp) in enumerate(M.np.x_grd)
     for (ixk,xk) in enumerate(M.np.x_grd)
@@ -132,17 +134,25 @@ function SolveVp1!(M)
         ## Loop over possible choices
         for (ixpn,xpn) in enumerate(M.np.xc_grd)
           for (itp,tp) in enumerate(M.np.tc_grd)
-          cp = cp_bc(xp,xpn,tp,mp.rf) #xp - xpn/(1.0 + mp.rf) - tp
-          xkn = gxkn_itp[iyk](xpn,xk+tp)
-          ck = ck_bc(xk+tp,wk,xkn,mp.rf)
-            if cp > 0.0 && xpn >= BorrConstr()
-              vtmp[ixpn,itp] = utilp(cp,mp.γ) +  mp.η*utilk(ck,0.0,mp.γ,mp.ξ)
-              for iykn = 1:np.ny
-                vtmp[ixpn,itp] += mp.β*np.Πy[iykn,iyk]*Vp_itp[iykn](xpn,xkn)
-              end
-            end
-          end
-        end
+            cp = cp_bc(xp,xpn,tp,mp.rf) #xp - xpn/(1.0 + mp.rf) - tp
+            for (ihkn,hkn) in enumerate(np.h_grd)
+              prob = gdisck_itp[iyk,ihkn](xpn,xk+tp)
+              @assert prob >= 0.0
+              @assert prob <= 1.0
+
+              if prob > 0.0
+                xkn = gxkn_itp[iyk,ihkn](xpn,xk+tp)
+                ck = ck_bc(xk+tp,wk,xkn,0.0,hkn,mp.rf,mp.κ)
+                if cp > 0.0 && xpn >= BorrConstr() && ck > 0.0
+                  vtmp[ixpn,itp] = prob*(utilp(cp,mp.γ) +  mp.η*utilk(ck,hkn,mp.γ,mp.ξ))
+                  for iykn = 1:np.ny
+                    vtmp[ixpn,itp] += prob*mp.β*np.Πy[iykn,iyk]*Vp_itp[iykn,ihkn](xpn,xkn)
+                  end
+                end
+              end # prob
+            end # ihkn
+          end #tp
+        end #xp
         imax = argmax(vtmp)
         xpn = M.np.xc_grd[imax[1]]
         tp = M.np.tc_grd[imax[2]]
@@ -162,7 +172,9 @@ function SolveAHK!(M)
   SolveVp2!(M)
   @assert minimum(M.Vp[2])  > -Inf64
   SolveVk1!(M)
-  # SolveVp1!(M)
+  @assert minimum(M.Vk[1])  > -Inf64
+  SolveVp1!(M)
+  # @assert minimum(M.Vp[1])  > -Inf64
 
   TestNumericalSolution(M) # Function that tests for numerical issues
 end
