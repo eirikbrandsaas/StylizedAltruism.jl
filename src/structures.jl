@@ -83,8 +83,8 @@ mutable struct Polk
   function Polk(np::NumPar)
     c = [[fill(-Inf64,np.nx,np.nx,np.ny,np.nh) for ia = 1:np.na-1]; [fill(-Inf64,np.nx,np.ny,np.nh,np.nh)]]
     x′ = [[fill(0.0,np.nx,np.nx,np.ny,np.nh) for ia = 1:np.na-1]; [fill(0.0,np.nx,np.ny,np.nh,np.nh)]]
-    h = [[fill(0.0,np.nx,np.nx,np.ny,np.nh) for ia = 1:np.na-1]; [fill(0.0,np.nx,np.ny,np.nh,np.nh)]]
-    disc = [[fill(0,np.nx,np.nx,np.ny) for ia = 1:np.na-1]; [fill(0,np.nx,np.ny,np.nh,np.nh)]]
+    h = [[fill(0.0,np.nx,np.nx,np.ny) for ia = 1:np.na-1]; [fill(0.0,np.nx,np.ny,np.nh)]]
+    disc = [[fill(0,np.nx,np.nx,np.ny,np.nh) for ia = 1:np.na-1]; [fill(0,np.nx,np.ny,np.nh,np.nh)]]
     new(c,x′,h,disc)
   end
 end
