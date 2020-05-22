@@ -21,7 +21,7 @@ function SolveVk2!(M)
         end
         imax = argmax(vtmp)
         M.gk.disc[ia][ixk,iyk,ihk,imax] = 1
-        M.gk.h[ia][ixk,iyk,ihk] = np.h_grd[imax]
+        M.gk.h[ia][ixk,iyk,ihk] = imax
         M.Vk[ia][ixk,iyk,ihk] = vtmp[imax]
       end
     end
@@ -104,7 +104,7 @@ function SolveVk1!(M)
         imax = argmax(vtmp) # Only need the optimal housing choice (second dimensio)
         ihmax = imax[2]
         M.gk.disc[ia][ixpn,ixk,iyk,ihmax] = 1
-        M.gk.h[ia][ixpn,ixk,iyk] = np.h_grd[ihmax]
+        M.gk.h[ia][ixpn,ixk,iyk] = ihmax
         M.Vk[ia][ixpn,ixk,iyk] = vtmp[imax]
       end
     end
@@ -175,6 +175,8 @@ function SolveAHK!(M)
   @assert minimum(M.Vk[1])  > -Inf64
   SolveVp1!(M)
   # @assert minimum(M.Vp[1])  > -Inf64
+
+  M.gke = gke_opt(M.np,M.gk)
 
   TestNumericalSolution(M) # Function that tests for numerical issues
 end

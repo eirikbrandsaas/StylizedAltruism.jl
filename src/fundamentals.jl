@@ -42,3 +42,25 @@ function adj(h1::Real,h2::Real,κ::Real)
 
     return cost
 end
+
+function gke_opt(np::StylizedAltruism.NumPar,gk::StylizedAltruism.Polk)
+  gke = Polk_eq(np)
+  gke.h = gk.h
+  for ia in 1:np.na
+    for ixk in 1:np.nx, iy in 1:np.ny
+      if ia < np.na
+        for ixp in 1:np.nx
+          gke.c[ia][ixk,ixp,iy] = gk.c[ia][ixk,ixp,iy,gk.h[ia][ixk,ixp,iy]]
+          gke.x′[ia][ixk,ixp,iy] = gk.x′[ia][ixk,ixp,iy,gk.h[ia][ixk,ixp,iy]]
+        end
+      else
+        for ihk = 1:np.nh
+          gke.c[ia][ixk,iy,ihk] = gk.c[ia][ixk,iy,ihk,gk.h[ia][ixk,iy,ihk]]
+          gke.x′[ia][ixk,iy,ihk] = gk.x′[ia][ixk,iy,ihk,gk.h[ia][ixk,iy,ihk]]
+        end
+      end
+    end
+  end
+
+  return gke
+end

@@ -73,22 +73,34 @@ mutable struct Polp
   end
 end
 
-
-mutable struct Polk
+mutable struct Polk # Policy functions for the kids, for each housing choice!
   c :: Vector{Array{Float64}}
   x′ :: Vector{Array{Float64}}
-  h :: Vector{Array{Float64}}
+  h :: Vector{Array{Int64}}
   disc :: Vector{Array{Int64}}
 
   function Polk(np::NumPar)
     c = [[fill(-Inf64,np.nx,np.nx,np.ny,np.nh) for ia = 1:np.na-1]; [fill(-Inf64,np.nx,np.ny,np.nh,np.nh)]]
     x′ = [[fill(0.0,np.nx,np.nx,np.ny,np.nh) for ia = 1:np.na-1]; [fill(0.0,np.nx,np.ny,np.nh,np.nh)]]
-    h = [[fill(0.0,np.nx,np.nx,np.ny) for ia = 1:np.na-1]; [fill(0.0,np.nx,np.ny,np.nh)]]
+    h = [[fill(0,np.nx,np.nx,np.ny) for ia = 1:np.na-1]; [fill(0,np.nx,np.ny,np.nh)]]
     disc = [[fill(0,np.nx,np.nx,np.ny,np.nh) for ia = 1:np.na-1]; [fill(0,np.nx,np.ny,np.nh,np.nh)]]
     new(c,x′,h,disc)
   end
 end
 
+
+mutable struct Polk_eq # Policy functinos for the kids
+  c :: Vector{Array{Float64}}
+  x′ :: Vector{Array{Float64}}
+  h :: Vector{Array{Int64}}
+
+  function Polk_eq(np::NumPar)
+    c = [[fill(-Inf64,np.nx,np.nx,np.ny) for ia = 1:np.na-1]; [fill(-Inf64,np.nx,np.ny,np.nh)]]
+    x′ = [[fill(0.0,np.nx,np.nx,np.ny) for ia = 1:np.na-1]; [fill(0.0,np.nx,np.ny,np.nh)]]
+    h = [[fill(0.0,np.nx,np.nx,np.ny) for ia = 1:np.na-1]; [fill(0.0,np.nx,np.ny,np.nh)]]
+    new(c,x′,h)
+  end
+end
 
 mutable struct switches
 
@@ -110,6 +122,7 @@ mutable struct Model
 
   gk :: Polk
   gp :: Polp
+  gke :: Polk_eq
 
   np :: NumPar
   mp :: ModPar
@@ -123,10 +136,11 @@ mutable struct Model
 
     gk = Polk(np)
     gp = Polp(np)
+    gke = Polk_eq(np)
 
     switch = switch
 
-    new(Vk, Vp, gk ,gp, np, mp, switch)
+    new(Vk, Vp, gk ,gp, gke, np, mp, switch)
   end
 
 end
