@@ -92,7 +92,7 @@ function SolveVk1!(M)
               vtmp[ixkn,ihkn] = utilk(ck,hkn,mp.γ,mp.ξ)
               for iykn = 1:np.ny
                 tpn = gtp_itp[ixpn,iykn,ihkn](xkn)
-                vtmp[ixkn,ihkn] += mp.β*np.Πy[iykn,iyk]*Vk_itp[iykn,ihkn](xkn + tpn)
+                vtmp[ixkn,ihkn] += mp.β*np.Πy[iyk,iykn]*Vk_itp[iykn,ihkn](xkn + tpn)
               end
             end
           end
@@ -146,7 +146,7 @@ function SolveVp1!(M)
                 if cp > 0.0 && xpn >= BorrConstr() && ck > 0.0
                   vtmp[ixpn,itp] = prob*(utilp(cp,mp.γ) +  mp.η*utilk(ck,hkn,mp.γ,mp.ξ))
                   for iykn = 1:np.ny
-                    vtmp[ixpn,itp] += prob*mp.β*np.Πy[iykn,iyk]*Vp_itp[iykn,ihkn](xpn,xkn)
+                    vtmp[ixpn,itp] += prob*mp.β*np.Πy[iyk,iykn]*Vp_itp[iykn,ihkn](xpn,xkn)
                   end
                 end
               end # prob
