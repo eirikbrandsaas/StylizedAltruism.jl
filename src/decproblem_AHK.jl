@@ -15,7 +15,7 @@ function SolveVk2!(M)
 
           M.gk.c[ia][ixk,iyk,ihk,ihkn] = ck
           M.gk.x′[ia][ixk,iyk,ihk,ihkn] = xkn
-          if ck > 0.0
+          if ck > 0.0 # If the transfer pushes the kid into infeasible choices!
             vtmp[ihkn] = utilk(ck,hkn,mp.γ,mp.ξ)
           end
         end
@@ -52,7 +52,9 @@ function SolveVp2!(M)
             cp = cp_bc(xp,xpn,tp,mp.rf)
             if cp > 0.0 && xpn >= BorrConstr() && prob > 0
               ck = gck_itp[iyk,ihk,ihkn](xk + tp)
-              vtmp[itp] = prob*(utilp(cp,mp.γ) + mp.η*utilk(ck,hkn,mp.γ,mp.ξ))
+              if ck > 0.0
+                vtmp[itp] = prob*(utilp(cp,mp.γ) + mp.η*utilk(ck,hkn,mp.γ,mp.ξ))
+              end
             end
           end
         end
@@ -111,6 +113,7 @@ function SolveVk1!(M)
   end
 end
 
+##
 function SolveVp1!(M)
   np = M.np
   mp = M.mp
@@ -120,8 +123,8 @@ function SolveVp1!(M)
   # gck_itp = [LinearInterpolation((np.x_grd,np.x_grd),M.gk.c[ia][:,:,iyk],extrapolation_bc=Line()) for iyk = 1:np.ny]
   gxkn_itp::Array{Interpolations.Extrapolation{Float64,2,Interpolations.GriddedInterpolation{Float64,2,Float64,Gridded{Linear},Tuple{Array{Float64,1},Array{Float64,1}}},Gridded{Linear},Line{Nothing}},2} =
      [LinearInterpolation((np.x_grd,np.x_grd),M.gk.x′[ia][:,:,iyk,ihkn],extrapolation_bc=Line()) for iyk = 1:np.ny, ihkn = 1:np.nh]
-  gdisck_itp::Array{Interpolations.Extrapolation{Float64,2,Interpolations.GriddedInterpolation{Float64,2,Float64,Gridded{Linear},Tuple{Array{Float64,1},Array{Float64,1}}},Gridded{Linear},Line{Nothing}},2} =
-     [LinearInterpolation((np.x_grd,np.x_grd),Float64.(M.gk.disc[ia][:,:,iyk,ihkn]),extrapolation_bc=Line()) for iyk = 1:np.ny, ihkn = 1:np.nh]
+  gdisck_itp::Array{Interpolations.Extrapolation{Float64,2,Interpolations.GriddedInterpolation{Float64,2,Float64,Gridded{Linear},Tuple{Array{Float64,1},Array{Float64,1}}},Gridded{Linear},Flat{Nothing}},2} =
+     [LinearInterpolation((np.x_grd,np.x_grd),Float64.(M.gk.disc[ia][:,:,iyk,ihkn]),extrapolation_bc=Flat()) for iyk = 1:np.ny, ihkn = 1:np.nh]
   Vp_itp::Array{Interpolations.Extrapolation{Float64,2,Interpolations.GriddedInterpolation{Float64,2,Float64,Gridded{Linear},Tuple{Array{Float64,1},Array{Float64,1}}},Gridded{Linear},Line{Nothing}},2} =
      [LinearInterpolation((np.x_grd,np.x_grd),M.Vp[ia+1][:,:,iyk,ihkn],extrapolation_bc=Line()) for iyk = 1:np.ny, ihkn = 1:np.nh]
 
