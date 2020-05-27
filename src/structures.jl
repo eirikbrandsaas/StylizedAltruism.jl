@@ -23,16 +23,18 @@ mutable struct NumPar
   nxc :: Int64
   ntc :: Int64
   nh :: Int64
+  nhi :: Int64 # Size of housing endowment
   x_grd :: Vector{Float64} # Stategrid (common for kids and parents)
   y_grd :: Vector{Float64} # Stategrid (only for kids)
   xc_grd :: Vector{Float64} # Choicegrid (common for kids and parents (for simplicity))
   tc_grd :: Vector{Float64} # Choicegrid (only for parents)
   inc_grd :: Vector{Float64} # Income grid (kids)
   h_grd :: Vector{Float64} # Housing grids
+  hi_grd :: Vector{Float64} # Housing Endowment grid
 
   Πy :: Array{Float64,2} # Probability for y' given y
 
-  function NumPar(;nh=1,na=2, nx=11, ny=5 ,nxc=20, ntc=20, xmax = 10.0, ymin = 0.5, ymax = 2.5,hmin=0.2,hmax = 1.0)
+  function NumPar(;nh=1,na=2, nx=11, ny=5 ,nxc=20, ntc=20, xmax = 10.0, ymin = 0.5, ymax = 2.5,hmin=0.2,hmax = 1.0, endowhouse = false)
     x_grd = range(1e-5,stop=xmax,length=nx)
     if ny > 1
       y_grd = range(ymin,stop=ymax,length=ny)
@@ -54,8 +56,15 @@ mutable struct NumPar
       h_grd = range(minimum(x_grd),stop=minimum(x_grd),length=nh)
     end
 
+    if endowhouse == false
+      nhi = 1
+      hi_grd = range(0.0,stop=0.0,length=nhi)
+    else
+      nhi = nh
+      hi_grd = h_grd
+    end
 
-    new(na,nx, ny, nxc, ntc, nh, x_grd, y_grd, xc_grd, tc_grd, inc_grd, h_grd, Πy)
+    new(na,nx, ny, nxc, ntc, nh, nhi, x_grd, y_grd, xc_grd, tc_grd, inc_grd, h_grd, hi_grd, Πy)
   end
 end
 
@@ -65,9 +74,9 @@ mutable struct Polp
   t :: Vector{Array{Float64}}
 
   function Polp(np::NumPar)
-    c = [[fill(0.0,np.nx,np.nx,np.ny) for ia = 1:np.na-1]; [fill(0.0,np.nx,np.nx,np.ny,np.nh)]]
-    x′ = [[fill(0.0,np.nx,np.nx,np.ny) for ia = 1:np.na-1]; [fill(0.0,np.nx,np.nx,np.ny,np.nh)]]
-    t = [[fill(0.0,np.nx,np.nx,np.ny) for ia = 1:np.na-1]; [fill(0.0,np.nx,np.nx,np.ny,np.nh)]]
+    c = [[fill(0.0,np.nx,np.nx,np.ny,np.nhi) for ia = 1:np.na-1]; [fill(0.0,np.nx,np.nx,np.ny,np.nh)]]
+    x′ = [[fill(0.0,np.nx,np.nx,np.ny,np.nhi) for ia = 1:np.na-1]; [fill(0.0,np.nx,np.nx,np.ny,np.nh)]]
+    t = [[fill(0.0,np.nx,np.nx,np.ny,np.nhi) for ia = 1:np.na-1]; [fill(0.0,np.nx,np.nx,np.ny,np.nh)]]
 
     new(c,x′,t)
   end
@@ -80,10 +89,10 @@ mutable struct Polk # Policy functions for the kids, for each housing choice!
   disc :: Vector{Array{Int64}}
 
   function Polk(np::NumPar)
-    c = [[fill(-Inf64,np.nx,np.nx,np.ny,np.nh) for ia = 1:np.na-1]; [fill(-Inf64,np.nx,np.ny,np.nh,np.nh)]]
-    x′ = [[fill(0.0,np.nx,np.nx,np.ny,np.nh) for ia = 1:np.na-1]; [fill(0.0,np.nx,np.ny,np.nh,np.nh)]]
-    h = [[fill(0,np.nx,np.nx,np.ny) for ia = 1:np.na-1]; [fill(0,np.nx,np.ny,np.nh)]]
-    disc = [[fill(0,np.nx,np.nx,np.ny,np.nh) for ia = 1:np.na-1]; [fill(0,np.nx,np.ny,np.nh,np.nh)]]
+    c = [[fill(-Inf64,np.nx,np.nx,np.ny,np.nhi,np.nh) for ia = 1:np.na-1]; [fill(-Inf64,np.nx,np.ny,np.nh,np.nh)]]
+    x′ = [[fill(0.0,np.nx,np.nx,np.ny,np.nhi,np.nh) for ia = 1:np.na-1]; [fill(0.0,np.nx,np.ny,np.nh,np.nh)]]
+    h = [[fill(0,np.nx,np.nx,np.ny,np.nhi) for ia = 1:np.na-1]; [fill(0,np.nx,np.ny,np.nh)]]
+    disc = [[fill(0,np.nx,np.nx,np.ny,np.nhi,np.nh) for ia = 1:np.na-1]; [fill(0,np.nx,np.ny,np.nh,np.nh)]]
     new(c,x′,h,disc)
   end
 end
@@ -95,9 +104,9 @@ mutable struct Polk_eq # Policy functinos for the kids
   h :: Vector{Array{Int64}}
 
   function Polk_eq(np::NumPar)
-    c = [[fill(-Inf64,np.nx,np.nx,np.ny) for ia = 1:np.na-1]; [fill(-Inf64,np.nx,np.ny,np.nh)]]
-    x′ = [[fill(0.0,np.nx,np.nx,np.ny) for ia = 1:np.na-1]; [fill(0.0,np.nx,np.ny,np.nh)]]
-    h = [[fill(0.0,np.nx,np.nx,np.ny) for ia = 1:np.na-1]; [fill(0.0,np.nx,np.ny,np.nh)]]
+    c = [[fill(-Inf64,np.nx,np.nx,np.ny,np.nhi) for ia = 1:np.na-1]; [fill(-Inf64,np.nx,np.ny,np.nh)]]
+    x′ = [[fill(0.0,np.nx,np.nx,np.ny,np.nhi) for ia = 1:np.na-1]; [fill(0.0,np.nx,np.ny,np.nh)]]
+    h = [[fill(0.0,np.nx,np.nx,np.ny,np.nhi) for ia = 1:np.na-1]; [fill(0.0,np.nx,np.ny,np.nh)]]
     new(c,x′,h)
   end
 end
@@ -106,12 +115,13 @@ mutable struct switches
 
   family :: Bool
   housing :: Bool
+  endowhouse :: Bool
   incomerisk :: Bool
   incomes :: Bool
 
-  function switches(;family=false, housing=false, incomerisk=false,incomes=false)
+  function switches(;family=false, endowhouse=false, housing=false, incomerisk=false,incomes=false)
 
-  new(family, housing, incomerisk,incomes)
+  new(family, housing, endowhouse,incomerisk,incomes)
   end
 end
 
@@ -131,8 +141,8 @@ mutable struct Model
 
   function Model(np::NumPar,mp::ModPar,switch::switches)
 
-    Vk =  [[fill(-Inf64,np.nx,np.nx,np.ny) for ia = 1:np.na-1]; [fill(-Inf64,np.nx,np.ny,np.nh)]]
-    Vp =  [[fill(-Inf64,np.nx,np.nx,np.ny) for ia = 1:np.na-1]; [fill(-Inf64,np.nx,np.nx,np.ny,np.nh)]]
+    Vk =  [[fill(-Inf64,np.nx,np.nx,np.ny,np.nhi) for ia = 1:np.na-1]; [fill(-Inf64,np.nx,np.ny,np.nh)]]
+    Vp =  [[fill(-Inf64,np.nx,np.nx,np.ny,np.nhi) for ia = 1:np.na-1]; [fill(-Inf64,np.nx,np.nx,np.ny,np.nh)]]
 
     gk = Polk(np)
     gp = Polp(np)
