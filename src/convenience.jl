@@ -19,7 +19,7 @@ function BenchmarkParameters(switch::StylizedAltruism.switches;
   end
 
   mp = StylizedAltruism.ModPar(η=η,rf=rf,γ=γ,β=β,ξ=ξ)
-  np = StylizedAltruism.NumPar(nx = nx, ntc = ntc, ymin=0.5,nxc=nxc,ny=ny,xmax=10,nh = nh)
+  np = StylizedAltruism.NumPar(nx = nx, ntc = ntc, ymin=0.5,nxc=nxc,ny=ny,xmax=xmax,nh = nh, endowhouse = switch.endowhouse)
   if switch.incomes == false
     np.y_grd .= 0.0
     np.inc_grd .= 0.0

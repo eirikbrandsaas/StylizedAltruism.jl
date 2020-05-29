@@ -49,9 +49,9 @@ function gke_opt(np::StylizedAltruism.NumPar,gk::StylizedAltruism.Polk)
   for ia in 1:np.na
     for ixk in 1:np.nx, iy in 1:np.ny
       if ia < np.na
-        for ixp in 1:np.nx
-          gke.c[ia][ixk,ixp,iy] = gk.c[ia][ixk,ixp,iy,gk.h[ia][ixk,ixp,iy]]
-          gke.x′[ia][ixk,ixp,iy] = gk.x′[ia][ixk,ixp,iy,gk.h[ia][ixk,ixp,iy]]
+        for ihki = 1:np.nhi, ixp in 1:np.nx
+          gke.c[ia][ixk,ixp,iy,ihki] = gk.c[ia][ixk,ixp,iy,ihki,gk.h[ia][ixk,ixp,iy]]
+          gke.x′[ia][ixk,ixp,iy,ihki] = gk.x′[ia][ixk,ixp,iy,ihki,gk.h[ia][ixk,ixp,iy]]
         end
       else
         for ihk = 1:np.nh
