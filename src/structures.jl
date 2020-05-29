@@ -42,7 +42,7 @@ mutable struct NumPar
       y_grd = range(1.0,stop=1.0,length=ny)
     end
     xc_grd = range(minimum(x_grd),stop=maximum(x_grd),length=nxc)
-    tc_grd = range(0.0,stop=maximum(x_grd),length=ntc)
+    tc_grd = range(0.0,stop=maximum(x_grd)/2,length=ntc)
 
     Πy = fill(1.0/ny,(ny,ny))
     if ny == 3

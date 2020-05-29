@@ -175,11 +175,11 @@ end
 
 function SolveAHK!(M)
   SolveVk2!(M)
-  @assert minimum(M.Vk[2])  > -Inf64
+  # @assert minimum(M.Vk[2])  > -Inf64
   SolveVp2!(M)
-  @assert minimum(M.Vp[2])  > -Inf64
+  # @assert minimum(M.Vp[2])  > -Inf64
   SolveVk1!(M)
-  @assert minimum(M.Vk[1])  > -Inf64
+  # @assert minimum(M.Vk[1])  > -Inf64
   SolveVp1!(M)
   # @assert minimum(M.Vp[1])  > -Inf64
 
