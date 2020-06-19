@@ -44,22 +44,9 @@ function SolveVp2!(M)
         ## Loop over possible choices
         vtmp .= -Inf64
         xpn = 0.0
-        for (itp,tp) in enumerate(M.np.tc_grd)
-          cp = cp_bc(xp,xpn,tp,mp.rf)
-          if cp > 0.0
-            vtmp[itp] = utilp(cp,mp.γ)
-            for (ihkn,hkn) in enumerate(np.h_grd) # We loop over all the possible discrete housing choices..
-              prob = gdisck_itp[iyk,ihk,ihkn](xk + tp) # And then find the probability that this choice is made!
-              @assert prob >= 0.0
-              @assert prob <= 1.0
-              if xpn >= BorrConstr() && prob > 0
-                ck = gck_itp[iyk,ihk,ihkn](xk + tp)
-                if ck > 0.0
-                  vtmp[itp] += prob*(mp.η*utilk(ck,hkn,mp.γ,mp.ξ))
-                end
-              end
-            end
-          end
+        for (itp,tp) in enumerate(np.tc_grd)
+        # Threads.@threads for (itp,tp) in collect(enumerate(np.tc_grd)) # Works, but is slower!?
+          vtmp[itp] = evalVp2(xp,xk,iyk,ihk,xpn,tp,gdisck_itp,gck_itp,mp,np) # ,mp,np
         end
         imax = argmax(vtmp)
         tp = M.np.tc_grd[imax]
@@ -70,6 +57,33 @@ function SolveVp2!(M)
       end
     end
   end
+end
+
+function evalVp2(xp::Real,xk::Real,iyk::Int,ihk::Int,xpn::Real,tp::Real,
+    gdisck_itp::Array{Interpolations.Extrapolation{Float64,1,Interpolations.GriddedInterpolation{Float64,1,Float64,Gridded{Linear},Tuple{Array{Float64,1}}},Gridded{Linear},Line{Nothing}},3},
+    gck_itp::Array{Interpolations.Extrapolation{Float64,1,Interpolations.GriddedInterpolation{Float64,1,Float64,Gridded{Linear},Tuple{Array{Float64,1}}},Gridded{Linear},Line{Nothing}},3},
+    mp::ModPar,np::NumPar) # ,,np::NumPar
+
+  cp = cp_bc(xp,xpn,tp,mp.rf)
+  if cp > 0.0
+    val = utilp(cp,mp.γ)
+    for (ihkn,hkn) in enumerate(np.h_grd) # We loop over all the possible discrete housing choices..
+      prob = gdisck_itp[iyk,ihk,ihkn](xk + tp) # And then find the probability that this choice is made!
+      @assert prob >= 0.0
+      @assert prob <= 1.0
+      if xpn >= BorrConstr() && prob > 0
+        ck = gck_itp[iyk,ihk,ihkn](xk + tp)
+        if ck > 0.0
+          val += prob*(mp.η*utilk(ck,hkn,mp.γ,mp.ξ))
+        end
+      end
+    end
+  else
+    val = -Inf64
+  end
+
+  return val
+
 end
 
 function SolveVk1!(M)
