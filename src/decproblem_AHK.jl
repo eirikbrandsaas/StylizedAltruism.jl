@@ -141,27 +141,9 @@ function SolveVp1!(M)
         vtmp .= -Inf64
 
         ## Loop over possible choices
-        for (ixpn,xpn) in enumerate(M.np.xc_grd)
-          for (itp,tp) in enumerate(M.np.tc_grd)
-            cp = cp_bc(xp,xpn,tp,mp.rf) #xp - xpn/(1.0 + mp.rf) - tp
-            if cp > 0.0 && xpn >= BorrConstr()
-              vtmp[ixpn,itp]  = utilp(cp,mp.γ)
-              for (ihkn,hkn) in enumerate(np.h_grd)
-                prob = gdisck_itp[iyk,ihki,ihkn](xpn,xk+tp)
-                @assert prob >= 0.0
-                @assert prob <= 1.0
-                if prob > 0.0
-                  xkn = gxkn_itp[iyk,ihki,ihkn](xpn,xk+tp)
-                  ck = ck_bc(xk+tp,wk,xkn,hki,hkn,mp.rf,mp.κ)
-                  if ck > 0.0
-                    vtmp[ixpn,itp] += prob*(mp.η*utilk(ck,hkn,mp.γ,mp.ξ))
-                    for iykn = 1:np.ny
-                      vtmp[ixpn,itp] += prob*mp.β*np.Πy[iyk,iykn]*Vp_itp[iykn,ihkn](xpn,xkn)
-                    end
-                  end
-                end # prob
-              end
-            end # ihkn
+        Threads.@threads  for (ixpn,xpn) in collect(enumerate(M.np.tc_grd))
+           for (itp,tp) in enumerate(M.np.tc_grd)
+            vtmp[ixpn,itp] = evalVp2(ixp,ixk,iyk,ihki,hki,wk,xk,xp,xpn,tp,gdisck_itp,gxkn_itp,Vp_itp,mp,np)
           end #tp
         end #xp
         imax = argmax(vtmp)
@@ -177,6 +159,33 @@ function SolveVp1!(M)
   end
 end
 
+function evalVp2(ixp::Int,ixk::Int,iyk::Int,ihki::Int,hki::Real,wk::Real,xk::Real,xp::Real,xpn::Real,tp::Real,gdisck_itp,gxkn_itp,Vp_itp,mp::ModPar,np::NumPar)
+
+  cp = cp_bc(xp,xpn,tp,mp.rf) #xp - xpn/(1.0 + mp.rf) - tp
+  if cp > 0.0 && xpn >= BorrConstr()
+    val  = utilp(cp,mp.γ)
+    for (ihkn,hkn) in enumerate(np.h_grd)
+      prob = gdisck_itp[iyk,ihki,ihkn](xpn,xk+tp)
+      @assert prob >= 0.0
+      @assert prob <= 1.0
+      if prob > 0.0
+        xkn = gxkn_itp[iyk,ihki,ihkn](xpn,xk+tp)
+        ck = ck_bc(xk+tp,wk,xkn,hki,hkn,mp.rf,mp.κ)
+        if ck > 0.0
+          val += prob*(mp.η*utilk(ck,hkn,mp.γ,mp.ξ))
+          for iykn = 1:np.ny
+            val += prob*mp.β*np.Πy[iyk,iykn]*Vp_itp[iykn,ihkn](xpn,xkn)
+          end
+        end
+      end # prob
+    end
+  else
+    val = -Inf64
+  end
+
+
+  return val
+end
 
 function SolveAHK!(M)
   SolveVk2!(M)
