@@ -141,9 +141,9 @@ function SolveVp1!(M)
         vtmp .= -Inf64
 
         ## Loop over possible choices
-        Threads.@threads  for (ixpn,xpn) in collect(enumerate(M.np.tc_grd))
+        Threads.@threads for (ixpn,xpn) in collect(enumerate(M.np.xc_grd))
            for (itp,tp) in enumerate(M.np.tc_grd)
-            vtmp[ixpn,itp] = evalVp2(ixp,ixk,iyk,ihki,hki,wk,xk,xp,xpn,tp,gdisck_itp,gxkn_itp,Vp_itp,mp,np)
+            vtmp[ixpn,itp] = evalVp1(ixp,ixk,iyk,ihki,hki,wk,xk,xp,xpn,tp,gdisck_itp,gxkn_itp,Vp_itp,mp,np)
           end #tp
         end #xp
         imax = argmax(vtmp)
@@ -159,7 +159,7 @@ function SolveVp1!(M)
   end
 end
 
-function evalVp2(ixp::Int,ixk::Int,iyk::Int,ihki::Int,hki::Real,wk::Real,xk::Real,xp::Real,xpn::Real,tp::Real,gdisck_itp,gxkn_itp,Vp_itp,mp::ModPar,np::NumPar)
+function evalVp1(ixp::Int,ixk::Int,iyk::Int,ihki::Int,hki::Real,wk::Real,xk::Real,xp::Real,xpn::Real,tp::Real,gdisck_itp,gxkn_itp,Vp_itp,mp::ModPar,np::NumPar)
 
   cp = cp_bc(xp,xpn,tp,mp.rf) #xp - xpn/(1.0 + mp.rf) - tp
   if cp > 0.0 && xpn >= BorrConstr()
