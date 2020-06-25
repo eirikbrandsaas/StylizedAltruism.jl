@@ -21,6 +21,11 @@ function ck_bc(xk,wk,xkn,hk,hkn,rf,κ)
     ck = xk + wk - xkn/(1.0 + rf) - adj(hk,hkn,κ) - hkn
 end
 
+function ck_bc2(xk,wk,xkn,hk,hkn,rf,κ,s)
+    ck = xk + wk - xkn/(1.0 + rf) - adj(hk,hkn,κ) - (1.0*s)*hkn
+end
+
+
 function cp_bc(xp,xpn,tp,rf)
     cp = xp - tp - xpn/(1.0+rf)
 end

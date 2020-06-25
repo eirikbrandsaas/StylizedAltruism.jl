@@ -1,6 +1,6 @@
 function BenchmarkParameters(switch::StylizedAltruism.switches;
     η = 0.5, rf = 0.0, γ = 2.0, β = 0.9, ξ = 0.2,
-    nx = 30, ntc = 60, ymin = 0.5, nxc = 80, ny = 3, xmax = 10, nh = 2)
+    nx = 30, ntc = 60, ymin = 0.5, nxc = 80, ny = 3, xmax = 10, nh = 2,ns = 1)
 
   if switch.family == false
     η = 0.0
@@ -15,11 +15,14 @@ function BenchmarkParameters(switch::StylizedAltruism.switches;
   if switch.housing == false
     ξ = 0.0
     nh = 1
-  else
+  end
+  if switch.pricerisk == false
+    ns = 1
   end
 
+
   mp = StylizedAltruism.ModPar(η=η,rf=rf,γ=γ,β=β,ξ=ξ)
-  np = StylizedAltruism.NumPar(nx = nx, ntc = ntc, ymin=0.5,nxc=nxc,ny=ny,xmax=xmax,nh = nh, endowhouse = switch.endowhouse)
+  np = StylizedAltruism.NumPar(nx = nx, ntc = ntc, ymin=0.5,nxc=nxc,ny=ny,xmax=xmax,nh = nh, endowhouse = switch.endowhouse,ns=ns)
   if switch.incomes == false
     np.y_grd .= 0.0
     np.inc_grd .= 0.0
