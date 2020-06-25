@@ -33,8 +33,8 @@ function SolveVp2!(M)
   mp = M.mp
   gck_itp::Array{Interpolations.Extrapolation{Float64,1,Interpolations.GriddedInterpolation{Float64,1,Float64,Gridded{Linear},Tuple{Array{Float64,1}}},Gridded{Linear},Line{Nothing}},3} =
     [LinearInterpolation((np.x_grd,),M.gk.c[M.np.na][:,iyk,ihk,ihkn],extrapolation_bc=Line()) for iyk = 1:np.ny,ihk = 1:np.nh, ihkn = 1:np.nh]
-  gdisck_itp::Array{Interpolations.Extrapolation{Float64,1,Interpolations.GriddedInterpolation{Float64,1,Float64,Gridded{Linear},Tuple{Array{Float64,1}}},Gridded{Linear},Line{Nothing}},3} =
-    [LinearInterpolation((np.x_grd,),Float64.(M.gk.disc[M.np.na][:,iyk,ihk,ihkn]),extrapolation_bc=Line()) for iyk = 1:np.ny,ihk = 1:np.nh, ihkn = 1:np.nh]
+  gdisck_itp::Array{Interpolations.Extrapolation{Float64,1,Interpolations.GriddedInterpolation{Float64,1,Float64,Gridded{Linear},Tuple{Array{Float64,1}}},Gridded{Linear},Flat{Nothing}},3} =
+    [LinearInterpolation((np.x_grd,),Float64.(M.gk.disc[M.np.na][:,iyk,ihk,ihkn]),extrapolation_bc=Flat()) for iyk = 1:np.ny,ihk = 1:np.nh, ihkn = 1:np.nh]
   vtmp = fill(-Inf64,np.ntc)
   ia = M.np.na
   for (ixp,xp) in enumerate(np.x_grd)
@@ -60,7 +60,7 @@ function SolveVp2!(M)
 end
 
 function evalVp2(xp::Real,xk::Real,iyk::Int,ihk::Int,xpn::Real,tp::Real,
-    gdisck_itp::Array{Interpolations.Extrapolation{Float64,1,Interpolations.GriddedInterpolation{Float64,1,Float64,Gridded{Linear},Tuple{Array{Float64,1}}},Gridded{Linear},Line{Nothing}},3},
+    gdisck_itp::Array{Interpolations.Extrapolation{Float64,1,Interpolations.GriddedInterpolation{Float64,1,Float64,Gridded{Linear},Tuple{Array{Float64,1}}},Gridded{Linear},Flat{Nothing}},3},
     gck_itp::Array{Interpolations.Extrapolation{Float64,1,Interpolations.GriddedInterpolation{Float64,1,Float64,Gridded{Linear},Tuple{Array{Float64,1}}},Gridded{Linear},Line{Nothing}},3},
     mp::ModPar,np::NumPar) # ,,np::NumPar
 
