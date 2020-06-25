@@ -6,23 +6,25 @@ function SolveVk2!(M)
   vtmp = fill(-Inf64,np.nh)
   for (ixk,xk) in enumerate(np.x_grd)
     for (iyk,yk) in enumerate(np.y_grd)
+      for (is,sk) in enumerate(np.s_grd)
       for (ihk,hk) in enumerate(np.h_grd)
         wk = income(yk,ia,np)
         xkn = 0.0 # Don't save in the last period
         vtmp .= -Inf64
         for (ihkn,hkn) in enumerate(np.h_grd)
-          ck = ck_bc(xk,wk,xkn,hk,hkn,mp.rf,mp.κ)
+          ck = ck_bc2(xk,wk,xkn,hk,hkn,mp.rf,mp.κ,sk)
 
-          M.gk.c[ia][ixk,iyk,ihk,ihkn] = ck
-          M.gk.x′[ia][ixk,iyk,ihk,ihkn] = xkn
+          M.gk.c[ia][ixk,iyk,ihk,is,ihkn] = ck
+          M.gk.x′[ia][ixk,iyk,ihk,is,ihkn] = xkn
           if ck > 0.0 # If the transfer pushes the kid into infeasible choices!
             vtmp[ihkn] = utilk(ck,hkn,mp.γ,mp.ξ)
           end
         end
         imax = argmax(vtmp)
-        M.gk.disc[ia][ixk,iyk,ihk,imax] = 1
-        M.gk.h[ia][ixk,iyk,ihk] = imax
-        M.Vk[ia][ixk,iyk,ihk] = vtmp[imax]
+        M.gk.disc[ia][ixk,iyk,ihk,is,imax] = 1
+        M.gk.h[ia][ixk,iyk,ihk,is] = imax
+        M.Vk[ia][ixk,iyk,ihk,is] = vtmp[imax]
+        end
       end
     end
   end
@@ -31,48 +33,50 @@ end
 function SolveVp2!(M)
   np = M.np
   mp = M.mp
-  gck_itp::Array{Interpolations.Extrapolation{Float64,1,Interpolations.GriddedInterpolation{Float64,1,Float64,Gridded{Linear},Tuple{Array{Float64,1}}},Gridded{Linear},Line{Nothing}},3} =
-    [LinearInterpolation((np.x_grd,),M.gk.c[M.np.na][:,iyk,ihk,ihkn],extrapolation_bc=Line()) for iyk = 1:np.ny,ihk = 1:np.nh, ihkn = 1:np.nh]
-  gdisck_itp::Array{Interpolations.Extrapolation{Float64,1,Interpolations.GriddedInterpolation{Float64,1,Float64,Gridded{Linear},Tuple{Array{Float64,1}}},Gridded{Linear},Flat{Nothing}},3} =
-    [LinearInterpolation((np.x_grd,),Float64.(M.gk.disc[M.np.na][:,iyk,ihk,ihkn]),extrapolation_bc=Flat()) for iyk = 1:np.ny,ihk = 1:np.nh, ihkn = 1:np.nh]
+  gck_itp::Array{Interpolations.Extrapolation{Float64,1,Interpolations.GriddedInterpolation{Float64,1,Float64,Gridded{Linear},Tuple{Array{Float64,1}}},Gridded{Linear},Line{Nothing}},4} =
+    [LinearInterpolation((np.x_grd,),M.gk.c[M.np.na][:,iyk,ihk,is,ihkn],extrapolation_bc=Line()) for iyk = 1:np.ny,ihk = 1:np.nh, is = 1:np.ns, ihkn = 1:np.nh]
+  gdisck_itp::Array{Interpolations.Extrapolation{Float64,1,Interpolations.GriddedInterpolation{Float64,1,Float64,Gridded{Linear},Tuple{Array{Float64,1}}},Gridded{Linear},Flat{Nothing}},4} =
+    [LinearInterpolation((np.x_grd,),Float64.(M.gk.disc[M.np.na][:,iyk,ihk,is,ihkn]),extrapolation_bc=Flat()) for iyk = 1:np.ny,ihk = 1:np.nh, is = 1:np.ns, ihkn = 1:np.nh]
   vtmp = fill(-Inf64,np.ntc)
   ia = M.np.na
   for (ixp,xp) in enumerate(np.x_grd)
     for (ixk,xk) in enumerate(np.x_grd)
       for (iyk,yk) in enumerate(np.y_grd)
         for (ihk,hk) in enumerate(np.h_grd)
-        ## Loop over possible choices
-        vtmp .= -Inf64
-        xpn = 0.0
-        for (itp,tp) in enumerate(np.tc_grd)
-        # Threads.@threads for (itp,tp) in collect(enumerate(np.tc_grd)) # Works, but is slower!?
-          vtmp[itp] = evalVp2(xp,xk,iyk,ihk,xpn,tp,gdisck_itp,gck_itp,mp,np) # ,mp,np
-        end
-        imax = argmax(vtmp)
-        tp = M.np.tc_grd[imax]
-        M.gp.t[ia][ixp,ixk,iyk,ihk] = tp
-        M.gp.c[ia][ixp,ixk,iyk,ihk] = cp_bc(xp,xpn,tp,mp.rf)
-        M.Vp[ia][ixp,ixk,iyk,ihk] = vtmp[imax]
+          for (is,sk) in enumerate(np.s_grd)
+            ## Loop over possible choices
+            vtmp .= -Inf64
+            xpn = 0.0
+            for (itp,tp) in enumerate(np.tc_grd)
+            # Threads.@threads for (itp,tp) in collect(enumerate(np.tc_grd)) # Works, but is slower!?
+              vtmp[itp] = evalVp2(xp,xk,iyk,ihk,xpn,tp,is,gdisck_itp,gck_itp,mp,np) # ,mp,np
+            end
+            imax = argmax(vtmp)
+            tp = M.np.tc_grd[imax]
+            M.gp.t[ia][ixp,ixk,iyk,ihk,is] = tp
+            M.gp.c[ia][ixp,ixk,iyk,ihk,is] = cp_bc(xp,xpn,tp,mp.rf)
+            M.Vp[ia][ixp,ixk,iyk,ihk,is] = vtmp[imax]
+          end
         end
       end
     end
   end
 end
 
-function evalVp2(xp::Real,xk::Real,iyk::Int,ihk::Int,xpn::Real,tp::Real,
-    gdisck_itp::Array{Interpolations.Extrapolation{Float64,1,Interpolations.GriddedInterpolation{Float64,1,Float64,Gridded{Linear},Tuple{Array{Float64,1}}},Gridded{Linear},Flat{Nothing}},3},
-    gck_itp::Array{Interpolations.Extrapolation{Float64,1,Interpolations.GriddedInterpolation{Float64,1,Float64,Gridded{Linear},Tuple{Array{Float64,1}}},Gridded{Linear},Line{Nothing}},3},
+function evalVp2(xp::Real,xk::Real,iyk::Int,ihk::Int,xpn::Real,tp::Real,is::Int,
+    gdisck_itp::Array{Interpolations.Extrapolation{Float64,1,Interpolations.GriddedInterpolation{Float64,1,Float64,Gridded{Linear},Tuple{Array{Float64,1}}},Gridded{Linear},Flat{Nothing}},4},
+    gck_itp::Array{Interpolations.Extrapolation{Float64,1,Interpolations.GriddedInterpolation{Float64,1,Float64,Gridded{Linear},Tuple{Array{Float64,1}}},Gridded{Linear},Line{Nothing}},4},
     mp::ModPar,np::NumPar) # ,,np::NumPar
 
   cp = cp_bc(xp,xpn,tp,mp.rf)
   if cp > 0.0
     val = utilp(cp,mp.γ)
     for (ihkn,hkn) in enumerate(np.h_grd) # We loop over all the possible discrete housing choices..
-      prob = gdisck_itp[iyk,ihk,ihkn](xk + tp) # And then find the probability that this choice is made!
+      prob = gdisck_itp[iyk,ihk,is,ihkn](xk + tp) # And then find the probability that this choice is made!
       @assert prob >= 0.0
       @assert prob <= 1.0
       if xpn >= BorrConstr() && prob > 0
-        ck = gck_itp[iyk,ihk,ihkn](xk + tp)
+        ck = gck_itp[iyk,ihk,is,ihkn](xk + tp)
         if ck > 0.0
           val += prob*(mp.η*utilk(ck,hkn,mp.γ,mp.ξ))
         end
@@ -92,10 +96,10 @@ function SolveVk1!(M)
   vtmp = fill(-Inf64,np.nxc,np.nh)
   ia = M.np.na-1
 
-  gtp_itp::Array{Interpolations.Extrapolation{Float64,1,Interpolations.GriddedInterpolation{Float64,1,Float64,Gridded{Linear},Tuple{Array{Float64,1}}},Gridded{Linear},Line{Nothing}},3} =
-    [LinearInterpolation((np.x_grd,),M.gp.t[ia+1][ixpn,:,iyk,ihkn],extrapolation_bc=Line()) for ixpn = 1:np.nx, iyk = 1:np.ny, ihkn = 1:np.nh]
-  Vk_itp::Array{Interpolations.Extrapolation{Float64,1,Interpolations.GriddedInterpolation{Float64,1,Float64,Gridded{Linear},Tuple{Array{Float64,1}}},Gridded{Linear},Line{Nothing}},2} =
-    [LinearInterpolation((np.x_grd,),M.Vk[ia+1][:,iyk,ihkn],extrapolation_bc=Line()) for iyk = 1:np.ny, ihkn = 1:np.nh]
+  gtp_itp::Array{Interpolations.Extrapolation{Float64,1,Interpolations.GriddedInterpolation{Float64,1,Float64,Gridded{Linear},Tuple{Array{Float64,1}}},Gridded{Linear},Line{Nothing}},4} =
+    [LinearInterpolation((np.x_grd,),M.gp.t[ia+1][ixpn,:,iyk,ihkn,is],extrapolation_bc=Line()) for ixpn = 1:np.nx, iyk = 1:np.ny, ihkn = 1:np.nh, is=1:np.ns]
+  Vk_itp::Array{Interpolations.Extrapolation{Float64,1,Interpolations.GriddedInterpolation{Float64,1,Float64,Gridded{Linear},Tuple{Array{Float64,1}}},Gridded{Linear},Line{Nothing}},3} =
+    [LinearInterpolation((np.x_grd,),M.Vk[ia+1][:,iyk,ihkn,is],extrapolation_bc=Line()) for iyk = 1:np.ny, ihkn = 1:np.nh, is=1:np.ns ]
 
   for (ixpn,xp) in enumerate(np.x_grd)
     for (ixk,xk) in enumerate(np.x_grd)
@@ -111,8 +115,10 @@ function SolveVk1!(M)
             if ck > 0.0 && xkn >= BorrConstr()
               vtmp[ixkn,ihkn] = utilk(ck,hkn,mp.γ,mp.ξ)
               for iykn = 1:np.ny
-                tpn = gtp_itp[ixpn,iykn,ihkn](xkn)
-                vtmp[ixkn,ihkn] += mp.β*np.Πy[iyk,iykn]*Vk_itp[iykn,ihkn](xkn + tpn)
+                for is = 1:np.ns
+                  tpn = gtp_itp[ixpn,iykn,ihkn,is](xkn)
+                  vtmp[ixkn,ihkn] += mp.β*np.Πy[iyk,iykn]*np.Πs[is]*Vk_itp[iykn,ihkn,is](xkn + tpn)
+                end
               end
             end
           end
@@ -144,8 +150,8 @@ function SolveVp1!(M)
      [LinearInterpolation((np.x_grd,np.x_grd),M.gk.x′[ia][:,:,iyk,ihki,ihkn],extrapolation_bc=Line()) for iyk = 1:np.ny, ihki = 1:np.nhi, ihkn = 1:np.nh]
   gdisck_itp::Array{Interpolations.Extrapolation{Float64,2,Interpolations.GriddedInterpolation{Float64,2,Float64,Interpolations.Gridded{Interpolations.Linear},Tuple{Array{Float64,1},Array{Float64,1}}},Interpolations.Gridded{Interpolations.Linear},Interpolations.Flat{Nothing}},3} =
      [LinearInterpolation((np.x_grd,np.x_grd),Float64.(M.gk.disc[ia][:,:,iyk,ihki,ihkn]),extrapolation_bc=Flat()) for iyk = 1:np.ny, ihki = 1:np.nhi, ihkn = 1:np.nh]
-  Vp_itp::Array{Interpolations.Extrapolation{Float64,2,Interpolations.GriddedInterpolation{Float64,2,Float64,Gridded{Linear},Tuple{Array{Float64,1},Array{Float64,1}}},Gridded{Linear},Line{Nothing}},2} =
-     [LinearInterpolation((np.x_grd,np.x_grd),M.Vp[ia+1][:,:,iyk,ihkn],extrapolation_bc=Line()) for iyk = 1:np.ny, ihkn = 1:np.nh]
+  Vp_itp::Array{Interpolations.Extrapolation{Float64,2,Interpolations.GriddedInterpolation{Float64,2,Float64,Gridded{Linear},Tuple{Array{Float64,1},Array{Float64,1}}},Gridded{Linear},Line{Nothing}},3} =
+     [LinearInterpolation((np.x_grd,np.x_grd),M.Vp[ia+1][:,:,iyk,ihkn,is],extrapolation_bc=Line()) for iyk = 1:np.ny, ihkn = 1:np.nh, is=1:np.ns]
 
   for (ixp,xp) in enumerate(M.np.x_grd)
     for (ixk,xk) in enumerate(M.np.x_grd)
@@ -188,7 +194,9 @@ function evalVp1(ixp::Int,ixk::Int,iyk::Int,ihki::Int,hki::Real,wk::Real,xk::Rea
         if ck > 0.0
           val += prob*(mp.η*utilk(ck,hkn,mp.γ,mp.ξ))
           for iykn = 1:np.ny
-            val += prob*mp.β*np.Πy[iyk,iykn]*Vp_itp[iykn,ihkn](xpn,xkn)
+            for is = 1:np.ns
+              val += prob*mp.β*np.Πy[iyk,iykn]*np.Πs[is]*Vp_itp[iykn,ihkn,is](xpn,xkn)
+            end
           end
         end
       end # prob
