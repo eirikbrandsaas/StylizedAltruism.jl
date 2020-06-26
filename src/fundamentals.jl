@@ -71,7 +71,6 @@ function gke_opt(np::StylizedAltruism.NumPar,gk::StylizedAltruism.Polk)
   gke = Polk_eq(np)
   gke.h = gk.h
   for ia in 1:np.na
-    println(ia)
     for ixk in 1:np.nx, iy in 1:np.ny
       if ia < np.na
         for ihki = 1:np.nhi, ixp in 1:np.nx

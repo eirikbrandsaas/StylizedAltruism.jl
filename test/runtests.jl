@@ -11,4 +11,5 @@ end
 
 @testset "Does changing switches work as expected?" begin
     @test test_altr_vs_eta() < 0.005 # Allow a small deviation due to numerical issues
+    @test test_houserisk() == true
 end
