@@ -37,9 +37,6 @@ function test_houserisk()
     np,mp = BenchmarkParameters(switch, nx = nx, η = 0.5,nh = nh, nxc = nxc, ntc = ntc,ξ = 0.4, xmax=13, ny=ny,ns=1,no=2)
     M2 = Solve(np,mp,switch)
 
-    plot(heatmap(M1.Vk[1][:,:,1,1,1]),
-        heatmap(M2.Vk[1][:,:,1,1,1]))
-
     M1.Vk[1] ≈  M2.Vk[1]
 
 end
