@@ -13,16 +13,24 @@ function xpn(xp,cp,tp,rf)
     xpn = (xp - cp - tp)*(1.0+rf)
 end
 
-function ck_bc(xk,wk,xkn,rf)
-    ck = xk + wk - xkn/(1.0 + rf)
+# function ck_bc(xk,wk,xkn,rf)
+#     ck = xk + wk - xkn/(1.0 + rf)
+# end
+
+function ck_bc(xk,wk,xkn,hk,hkn,rf,κ,p,own::Bool)
+    if own == false
+        ck = xk + wk - xkn/(1.0 + rf) - adj(hk,hkn,κ) - hkn
+    else
+        ck = xk + wk - xkn/(1.0 + rf) - adj(hk,hkn,κ) - p*hkn
+    end
 end
 
-function ck_bc(xk,wk,xkn,hk,hkn,rf,κ)
-    ck = xk + wk - xkn/(1.0 + rf) - adj(hk,hkn,κ) - hkn
-end
-
-function ck_bc2(xk,wk,xkn,hk,hkn,rf,κ,s)
-    ck = xk + wk - xkn/(1.0 + rf) - adj(hk,hkn,κ) - (1.0*s)*hkn
+function ck_bc2(xk,wk,xkn,hk,hkn,rf,κ,s,ok::Bool)
+    if ok == false
+        ck = xk + wk - xkn/(1.0 + rf) - adj2(hk,hkn,κ,ok) - (1.0*s)*hkn
+    else
+        ck = xk + wk - xkn/(1.0 + rf) - adj2(hk,hkn,κ,ok) + (1.0 - s)*hk
+    end
 end
 
 
@@ -48,20 +56,36 @@ function adj(h1::Real,h2::Real,κ::Real)
     return cost
 end
 
+function adj2(h1::Real,h2::Real,κ::Real,ok::Bool)
+    if h1 != h2
+        cost = κ*h1 + Inf64*ok
+    else
+        cost = 0.0
+    end
+
+    return cost
+end
+
+
 function gke_opt(np::StylizedAltruism.NumPar,gk::StylizedAltruism.Polk)
   gke = Polk_eq(np)
   gke.h = gk.h
   for ia in 1:np.na
+    println(ia)
     for ixk in 1:np.nx, iy in 1:np.ny
       if ia < np.na
         for ihki = 1:np.nhi, ixp in 1:np.nx
+            println([ia,ixk,iy,ihki,ixp,])
+            println(size(gke.c[ia][ixk,ixp,iy,ihki]))
+            println(size(gk.c[ia][ixk,ixp,iy,ihki,1]))
+            println(size(gk.h[ia][ixk,ixp,iy]))
           gke.c[ia][ixk,ixp,iy,ihki] = gk.c[ia][ixk,ixp,iy,ihki,gk.h[ia][ixk,ixp,iy]]
           gke.x′[ia][ixk,ixp,iy,ihki] = gk.x′[ia][ixk,ixp,iy,ihki,gk.h[ia][ixk,ixp,iy]]
         end
       else
-        for ihk = 1:np.nh
-          gke.c[ia][ixk,iy,ihk] = gk.c[ia][ixk,iy,ihk,gk.h[ia][ixk,iy,ihk]]
-          gke.x′[ia][ixk,iy,ihk] = gk.x′[ia][ixk,iy,ihk,gk.h[ia][ixk,iy,ihk]]
+        for ihk = 1:np.nh, io = 1:np.no, is = 1:np.ns
+          gke.c[ia][ixk,iy,ihk,io,is] = gk.c[ia][ixk,iy,ihk,io,is,gk.h[ia][ixk,iy,ihk,io,is]]
+          gke.x′[ia][ixk,iy,ihk,io,is] = gk.x′[ia][ixk,iy,ihk,io,is,gk.h[ia][ixk,iy,ihk,io,is]]
         end
       end
     end
