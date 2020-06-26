@@ -9,9 +9,11 @@ mutable struct ModPar
   rf :: Float64
   κ :: Float64
   p :: Float64
+  os :: Float64
+  rs :: Float64
 
-  function ModPar(;β=0.92, γ=1.5, η=0.3, ξ = 0.10, χ = .0, rf = 0.0, κ = 0.0,p=2.0)
-    new(β, γ, η, ξ, χ, rf, κ,p)
+  function ModPar(;β=0.92, γ=1.5, η=0.3, ξ = 0.10, χ = .0, rf = 0.0, κ = 0.0,p=2.0,os = 1.0, rs =1.0)
+    new(β, γ, η, ξ, χ, rf, κ, p, os, rs)
   end
 
 end
@@ -50,9 +52,9 @@ mutable struct NumPar
     tc_grd = range(0.0,stop=maximum(x_grd)/2,length=ntc)
 
     if ns == 1
-      s_grd = range(1.0,stop=1.0,length=ns)
+      s_grd = range(0.0,stop=0.0,length=ns)
     else
-      s_grd = range(0.7,stop=1.3,length=ns)
+      s_grd = range(-0.3,stop=0.3,length=ns)
     end
 
     if no == 1

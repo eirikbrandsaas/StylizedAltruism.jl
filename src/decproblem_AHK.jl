@@ -13,7 +13,7 @@ function SolveVk2!(M)
         xkn = 0.0 # Don't save in the last period
         vtmp .= -Inf64
           for (ihkn,hkn) in enumerate(np.h_grd)
-            ck = ck_bc2(xk,wk,xkn,hk,hkn,mp.rf,mp.κ,sk,ok)
+            ck = ck_bc2(xk,wk,xkn,hk,hkn,mp.rf,mp.κ,mp.os,mp.rs,sk,ok)
 
             M.gk.c[ia][ixk,iyk,ihk,io,is,ihkn] = ck
             M.gk.x′[ia][ixk,iyk,ihk,io,is,ihkn] = xkn
@@ -230,7 +230,7 @@ function SolveAHK!(M)
   SolveVp1!(M)
   # @assert minimum(M.Vp[1])  > -Inf64
 
-  # M.gke = gke_opt(M.np,M.gk)
+  M.gke = gke_opt(M.np,M.gk)
 
   TestNumericalSolution(M) # Function that tests for numerical issues
 end

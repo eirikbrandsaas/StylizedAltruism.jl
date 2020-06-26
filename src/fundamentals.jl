@@ -25,11 +25,11 @@ function ck_bc(xk,wk,xkn,hk,hkn,rf,κ,p,own::Bool)
     end
 end
 
-function ck_bc2(xk,wk,xkn,hk,hkn,rf,κ,s,ok::Bool)
+function ck_bc2(xk,wk,xkn,hk,hkn,rf,κ,os,rs,s,ok::Bool)
     if ok == false
-        ck = xk + wk - xkn/(1.0 + rf) - adj2(hk,hkn,κ,ok) - (1.0*s)*hkn
+        ck = xk + wk - xkn/(1.0 + rf) - adj2(hk,hkn,κ,ok) - (1.0 + rs*s)*hkn
     else
-        ck = xk + wk - xkn/(1.0 + rf) - adj2(hk,hkn,κ,ok) + (1.0 - s)*hk
+        ck = xk + wk - xkn/(1.0 + rf) - adj2(hk,hkn,κ,ok) + (os*s)*hk
     end
 end
 
@@ -75,12 +75,10 @@ function gke_opt(np::StylizedAltruism.NumPar,gk::StylizedAltruism.Polk)
     for ixk in 1:np.nx, iy in 1:np.ny
       if ia < np.na
         for ihki = 1:np.nhi, ixp in 1:np.nx
-            println([ia,ixk,iy,ihki,ixp,])
-            println(size(gke.c[ia][ixk,ixp,iy,ihki]))
-            println(size(gk.c[ia][ixk,ixp,iy,ihki,1]))
-            println(size(gk.h[ia][ixk,ixp,iy]))
-          gke.c[ia][ixk,ixp,iy,ihki] = gk.c[ia][ixk,ixp,iy,ihki,gk.h[ia][ixk,ixp,iy]]
-          gke.x′[ia][ixk,ixp,iy,ihki] = gk.x′[ia][ixk,ixp,iy,ihki,gk.h[ia][ixk,ixp,iy]]
+          ihkn = gk.h[ia][ixk,ixp,iy]
+          iokn = gk.o[ia][ixk,ixp,iy]
+          gke.c[ia][ixk,ixp,iy,ihki] = gk.c[ia][ixk,ixp,iy,ihki,ihkn,iokn]
+          gke.x′[ia][ixk,ixp,iy,ihki] = gk.x′[ia][ixk,ixp,iy,ihki,ihkn,iokn]
         end
       else
         for ihk = 1:np.nh, io = 1:np.no, is = 1:np.ns
