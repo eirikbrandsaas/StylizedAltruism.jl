@@ -11,7 +11,7 @@ function SolveVk2!(M)
         for (io,ok) in enumerate(np.o_grd)
         wk = income(yk,ia,np)
         xkn = 0.0 # Don't save in the last period
-        vtmp .= -Inf64
+        vtmp .= -1e45 #-Inf64
           for (ihkn,hkn) in enumerate(np.h_grd)
             ck = ck_bc2(xk,wk,xkn,hk,hkn,mp.rf,mp.κ,mp.os,mp.rs,sk,ok)
 
@@ -48,7 +48,7 @@ function SolveVp2!(M)
           for (io,ok) in enumerate(np.o_grd)
           for (is,sk) in enumerate(np.s_grd)
             ## Loop over possible choices
-            vtmp .= -Inf64
+            vtmp .= -1e64
             xpn = 0.0
             for (itp,tp) in enumerate(np.tc_grd)
             # Threads.@threads for (itp,tp) in collect(enumerate(np.tc_grd)) # Works, but is slower!?

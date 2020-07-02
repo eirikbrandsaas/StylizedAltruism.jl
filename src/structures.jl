@@ -48,7 +48,7 @@ mutable struct NumPar
     else
       y_grd = range(1.0,stop=1.0,length=ny)
     end
-    xc_grd = range(minimum(x_grd),stop=maximum(x_grd),length=nxc)
+    xc_grd = range(minimum(x_grd)/2,stop=maximum(x_grd),length=nxc)
     tc_grd = range(0.0,stop=maximum(x_grd)/2,length=ntc)
 
     if ns == 1
