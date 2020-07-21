@@ -169,8 +169,8 @@ function SolveVp1!(M)
         vtmp .= -Inf64
 
         ## Loop over possible choices
-        # Threads.@threads for (ixpn,xpn) in collect(enumerate(M.np.xc_grd))
-        for (ixpn,xpn) in collect(enumerate(M.np.xc_grd))
+        Threads.@threads for (ixpn,xpn) in collect(enumerate(M.np.xc_grd))
+        # for (ixpn,xpn) in collect(enumerate(M.np.xc_grd))
            for (itp,tp) in enumerate(M.np.tc_grd)
             vtmp[ixpn,itp] = evalVp1(ixp,ixk,iyk,ihki,hki,wk,xk,xp,xpn,tp,gdisck_itp,gxkn_itp,Vp_itp,mp,np)
           end #tp
