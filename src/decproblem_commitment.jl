@@ -291,7 +291,7 @@ function housing_commitment_kid(ikpref::Array{Int64},Mcom)
           for (ihki,hki) in enumerate(np.hi_grd)
               iθ = ikpref[ixp,ixk,iyk,ihki]
               if iθ > 0
-                  hk[ixp,ixk,iyk,ihki] = Mcom.ihkn[1][ixk+ixp,iyk,ihki,]
+                  hk[ixp,ixk,iyk,ihki] = np.h_grd[Mcom.ihkn[1][ixk+ixp,iyk,ihki,iθ]]
               end
           end
         end
