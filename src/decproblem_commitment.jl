@@ -16,7 +16,7 @@ function SolveVc2(np,mp)
                 xpn = 0.0
                 wk = StylizedAltruism.income(yk,ia,np)
                 for (ihkn,hkn) in enumerate(np.h_grd)
-                  for (ick,ck) in enumerate(np.tc_grd)
+                  for (ick,ck) in enumerate(np.xc_grd)
                     cp = StylizedAltruism.ck_bc2(xf-ck,wk,xpn,hk,hkn,mp.rf,mp.κ,mp.os,mp.rs,sk,ok)
                     if ck > 0.0 && cp >0.0
                       vtmp[ihkn,ick] =  (1.0 - θ)*StylizedAltruism.utilp(cp,mp.γ) + (θ + (1.0 - θ)*mp.η)*StylizedAltruism.utilk(ck,hkn,mp.γ,mp.ξ)
@@ -27,7 +27,7 @@ function SolveVc2(np,mp)
                 ihkn = imax[1]
                 ick = imax[2]
                 hkn = np.h_grd[ihkn]
-                ck = np.tc_grd[ick]
+                ck = np.xc_grd[ick]
                 cp_pol[ixf,iyk,ihk,io,is,iθ] = StylizedAltruism.ck_bc2(xf-ck,wk,xpn,hk,hkn,mp.rf,mp.κ,mp.os,mp.rs,sk,ok)
                 ck_pol[ixf,iyk,ihk,io,is,iθ] = ck
                 xf_pol[ixf,iyk,ihk,io,is,iθ] = xpn
@@ -64,9 +64,9 @@ function SolveVc1(np,mp,valnxt)
           vtmp .= -1e64
           wk = StylizedAltruism.income(yk,ia,np)
           #=Threads.@threads=# for (ihkn,hkn) in collect(enumerate(np.h_grd))
-            for (ick,ck) in enumerate(np.tc_grd)
+            for (ick,ck) in enumerate(np.xc_grd)
               for (ixpn,xpn) in enumerate(np.xc_grd)
-                 vtmp[ihkn,ick,ixpn] = Vc1_eval(θ,xf,ck,hkn,xpn,iyk,ihkn,mp,np,vnxt[:,:,:,:,iθ])
+                 vtmp[ihkn,ick,ixpn] = Vc1_eval(θ,xf+wk,ck,hkn,xpn,iyk,ihkn,mp,np,vnxt[:,:,:,:,iθ])
               end
             end
           end
@@ -76,11 +76,11 @@ function SolveVc1(np,mp,valnxt)
 
           ixpn = imax[3]
           hkn = np.h_grd[ihkn]
-          ck = np.tc_grd[ick]
+          ck = np.xc_grd[ick]
           xpn = np.xc_grd[ixpn]
-          cp_pol[ixf,iyk,ihk,iθ] = StylizedAltruism.cp_bc(xf,xpn,0.0,mp.rf)
           ck_pol[ixf,iyk,ihk,iθ] = ck
           ihkn_pol[ixf,iyk,ihk,iθ] = ihkn
+          cp_pol[ixf,iyk,ihk,iθ] = StylizedAltruism.cp_bc(xf+wk-ck-hkn,xpn,0.0,mp.rf)
           xp′_pol[ixf,iyk,ihk,iθ] = xpn
           val[ixf,iyk,ihk,iθ] = vtmp[imax]
         end
@@ -172,8 +172,6 @@ function Vc_to_VkVp(Mc::ModelCommitment)
       for (iyk,yk) in enumerate(np.y_grd)
         for (ihki,hki) in enumerate(np.hi_grd)
           for (iθ,θ) in enumerate(np.θ_grd)
-            if ixp + ixk <= np.nx # x_grd commitment is equal x_grd without commitment, but since xf = xp + xk the comparison between the solutions is only valid for xp + xk < xf
-
               # Find Policies
               ck1 = Mc.ck[1][ixk+ixp,iyk,ihki,iθ]
               cp1 = Mc.cp[1][ixk+ixp,iyk,ihki,iθ]
@@ -199,7 +197,7 @@ function Vc_to_VkVp(Mc::ModelCommitment)
 
               Mc.Vk[1][ixk,ixp,iyk,ihki,iθ] = valk
               Mc.Vp[1][ixk,ixp,iyk,ihki,iθ] = valp
-            end
+
           end
         end
       end
@@ -245,4 +243,60 @@ function Vk_to_Vkini(M)
   end
 
   return Vk_ini, ck_ini, xk_ini, hk_ini
+end
+
+"""
+    function lowest_pareto(Mcom,Mnocom)
+
+finds the lowest pareto weights the kids and parent is willing to accept.
+"""
+function lowest_pareto(Mcom,Mnocom)
+    np = Mnocom.np
+    Vk_ini, _, _, _ = StylizedAltruism.Vk_to_Vkini(Mnocom)
+    Vk,Vp = StylizedAltruism.Vc_to_VkVp(Mcom)
+
+    ikpref = fill(-1,np.nx,np.nx,np.ny,np.nhi)
+    ippref = fill(-1,np.nx,np.nx,np.ny,np.nhi)
+    for ixk = 1:np.nx
+        for ixp = 1:np.nx
+            for iy = 1:np.ny,ihi=1:np.nhi
+                ind = findfirst(Vk[ixk,ixp,iy,ihi,:] .>= Vk_ini[ixk,ixp,iy,ihi])
+                if ind !=nothing
+                  ikpref[ixk,ixp] = ind
+                end
+
+                ind = findlast(Vp[ixk,ixp,iy,ihi,:] .>= Mnocom.Vp[1][ixk,ixp,iy,ihi])
+                if ind !=nothing
+                 ippref[ixk,ixp] = ind
+                end
+            end
+        end
+    end
+
+    return ikpref,ippref
+end
+
+"""
+    function housing_commitment_kid(ikpreff,Mcom)
+
+finds the housing choice for a kid using the lowest pareto-weight he is willing to accept
+"""
+function housing_commitment_kid(ikpref::Array{Int64},Mcom)
+    np = Mcom.np
+    hk = fill(NaN64,(np.nx,np.nx,np.ny,np.nhi))
+
+    for (ixp,xp) in enumerate(np.x_grd)
+      for (ixk,xk) in enumerate(np.x_grd)
+        for (iyk,yk) in enumerate(np.y_grd)
+          for (ihki,hki) in enumerate(np.hi_grd)
+              iθ = ikpref[ixp,ixk,iyk,ihki]
+              if iθ > 0
+                  hk[ixp,ixk,iyk,ihki] = Mcom.ihkn[1][ixk+ixp,iyk,ihki,]
+              end
+          end
+        end
+      end
+    end
+
+    return hk
 end

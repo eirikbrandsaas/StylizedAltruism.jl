@@ -96,7 +96,7 @@ mutable struct NumPar
     if nθ == 1
       θ_grd = range(0.5,stop=0.5,length=nθ)
     else
-      θ_grd = range(0.1,stop=0.9,length=nθ)
+      θ_grd = range(0.0,stop=0.99,length=nθ)
     end
 
     new(na,nx, ny, nxc, ntc, nh, nhi, ns, no, nθ, nxf, x_grd, y_grd, xc_grd, tc_grd, inc_grd, h_grd, hi_grd, s_grd, o_grd, θ_grd, xf_grd, Πy, Πs)
