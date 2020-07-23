@@ -11,9 +11,10 @@ mutable struct ModPar
   p :: Float64
   os :: Float64
   rs :: Float64
+  θ :: Float64 # Pareto weight
 
-  function ModPar(;β=0.92, γ=1.5, η=0.3, ξ = 0.10, χ = .0, rf = 0.0, κ = 0.0,p=2.0,os = 1.0, rs =1.0)
-    new(β, γ, η, ξ, χ, rf, κ, p, os, rs)
+  function ModPar(;β=0.92, γ=1.5, η=0.3, ξ = 0.10, χ = .0, rf = 0.0, κ = 0.0,p=2.0,os = 1.0, rs =1.0,θ = 0.5)
+    new(β, γ, η, ξ, χ, rf, κ, p, os, rs,θ)
   end
 
 end
@@ -28,6 +29,8 @@ mutable struct NumPar
   nhi :: Int64 # Size of housing endowment
   ns :: Int64
   no :: Int64
+  nθ :: Int64
+  nxf :: Int64
   x_grd :: Vector{Float64} # Stategrid (common for kids and parents)
   y_grd :: Vector{Float64} # Stategrid (only for kids)
   xc_grd :: Vector{Float64} # Choicegrid (common for kids and parents (for simplicity))
@@ -37,12 +40,16 @@ mutable struct NumPar
   hi_grd :: Vector{Float64} # Housing Endowment grid
   s_grd :: Vector{Float64} # House price uncertainty
   o_grd :: Vector{Bool}
+  θ_grd :: Vector{Float64}
+  xf_grd :: Vector{Float64}
 
   Πy :: Array{Float64,2} # Probability for y' given y
   Πs :: Array{Float64,1}
 
-  function NumPar(;nh=1,na=2, nx=11, ny=5 ,nxc=20, ntc=20, ns = 1, xmax = 10.0, ymin = 0.5, ymax = 2.5,hmin=0.2,hmax = 1.0, endowhouse = false,no=1)
+  function NumPar(;nh=1,na=2, nx=11, ny=5 ,nxc=20, ntc=20, ns = 1, xmax = 10.0, ymin = 0.5, ymax = 2.5,hmin=0.2,hmax = 1.0, endowhouse = false,no=1, nθ=1)
     x_grd = range(1e-5,stop=xmax,length=nx)
+    nxf = nx*2
+    xf_grd = range(1e-5,stop=xmax*2,length=nxf)
     if ny > 1
       y_grd = range(ymin,stop=ymax,length=ny)
     else
@@ -86,7 +93,13 @@ mutable struct NumPar
       hi_grd = h_grd
     end
 
-    new(na,nx, ny, nxc, ntc, nh, nhi, ns, no,x_grd, y_grd, xc_grd, tc_grd, inc_grd, h_grd, hi_grd, s_grd, o_grd, Πy, Πs)
+    if nθ == 1
+      θ_grd = range(0.5,stop=0.5,length=nθ)
+    else
+      θ_grd = range(0.0,stop=0.99,length=nθ)
+    end
+
+    new(na,nx, ny, nxc, ntc, nh, nhi, ns, no, nθ, nxf, x_grd, y_grd, xc_grd, tc_grd, inc_grd, h_grd, hi_grd, s_grd, o_grd, θ_grd, xf_grd, Πy, Πs)
   end
 end
 
