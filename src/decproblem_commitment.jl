@@ -1,12 +1,12 @@
 function SolveVc2(np,mp)
-    cp_pol = fill(-1.0,np.nx,np.ny,np.nh,np.no,np.ns,np.nθ)
-    ck_pol = fill(-1.0,np.nx,np.ny,np.nh,np.no,np.ns,np.nθ)
-    xf_pol = fill(-1.0,np.nx,np.ny,np.nh,np.no,np.ns,np.nθ)
-    ihkn_pol = fill(-1,np.nx,np.ny,np.nh,np.no,np.ns,np.nθ)
-    val = fill(-1.0,np.nx,np.ny,np.nh,np.no,np.ns,np.nθ)
+    cp_pol = fill(-1.0,np.nxf,np.ny,np.nh,np.no,np.ns,np.nθ)
+    ck_pol = fill(-1.0,np.nxf,np.ny,np.nh,np.no,np.ns,np.nθ)
+    xf_pol = fill(-1.0,np.nxf,np.ny,np.nh,np.no,np.ns,np.nθ)
+    ihkn_pol = fill(-1,np.nxf,np.ny,np.nh,np.no,np.ns,np.nθ)
+    val = fill(-1.0,np.nxf,np.ny,np.nh,np.no,np.ns,np.nθ)
     vtmp = fill(-Inf64,np.nh,np.ntc)
     ia = np.na
-    for (ixf,xf) in enumerate(np.x_grd)
+    for (ixf,xf) in enumerate(np.xf_grd)
       for (iyk,yk) in enumerate(np.y_grd)
         for (ihk,hk) in enumerate(np.h_grd)
           for (io,ok) in enumerate(np.o_grd)
@@ -44,19 +44,19 @@ function SolveVc2(np,mp)
 end
 
 function SolveVc1(np,mp,valnxt)
-  cp_pol = fill(-2.0,np.nx,np.ny,np.nhi,np.nθ)
-  ck_pol = fill(-1.0,np.nx,np.ny,np.nhi,np.nθ)
-  xp′_pol = fill(-1.0,np.nx,np.ny,np.nhi,np.nθ)
-  ihkn_pol = fill(-1,np.nx,np.ny,np.nhi,np.nθ)
-  val = fill(-1.0,np.nx,np.ny,np.nhi,np.nθ)
+  cp_pol = fill(-2.0,np.nxf,np.ny,np.nhi,np.nθ)
+  ck_pol = fill(-1.0,np.nxf,np.ny,np.nhi,np.nθ)
+  xp′_pol = fill(-1.0,np.nxf,np.ny,np.nhi,np.nθ)
+  ihkn_pol = fill(-1,np.nxf,np.ny,np.nhi,np.nθ)
+  val = fill(-1.0,np.nxf,np.ny,np.nhi,np.nθ)
   vtmp = fill(-Inf64,np.nh,np.ntc,np.nxc)
   ia = np.na
 
   @assert np.no == 1 # Only works with one ownership status
 
-  vnxt = [LinearInterpolation((np.x_grd,),valnxt[:,iyk,ihkn,io,is,iθ],extrapolation_bc=Line()) for iyk = 1:np.ny, ihkn = 1:np.nh, io = 1:np.no, is=1:np.ns, iθ = 1:np.nθ]
+  vnxt = [LinearInterpolation((np.xf_grd,),valnxt[:,iyk,ihkn,io,is,iθ],extrapolation_bc=Line()) for iyk = 1:np.ny, ihkn = 1:np.nh, io = 1:np.no, is=1:np.ns, iθ = 1:np.nθ]
 
-  for (ixf,xf) in enumerate(np.x_grd)
+  for (ixf,xf) in enumerate(np.xf_grd)
     for (iyk,yk) in enumerate(np.y_grd)
       for (ihk,hk) in enumerate(np.hi_grd)
         for (iθ,θ) in enumerate(np.θ_grd)
