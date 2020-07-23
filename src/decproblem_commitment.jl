@@ -221,7 +221,13 @@ function Vk_to_Vkini(M)
   mp = M.mp
 
   Vk_itp = [LinearInterpolation((np.x_grd,np.x_grd),M.Vk[1][:,:,iyk,ihki],extrapolation_bc=Line()) for iyk = 1:np.ny, ihki = 1:np.nhi]
+  hk_itp = [LinearInterpolation((np.x_grd,np.x_grd),np.h_grd[M.gke.h[1][:,:,iyk,ihki]],extrapolation_bc=Line()) for iyk = 1:np.ny, ihki = 1:np.nhi]
+  ck_itp = [LinearInterpolation((np.x_grd,np.x_grd),M.gke.c[1][:,:,iyk,ihki],extrapolation_bc=Flat()) for iyk = 1:np.ny, ihki = 1:np.nhi]
+  xk_itp = [LinearInterpolation((np.x_grd,np.x_grd),M.gke.x′[1][:,:,iyk,ihki],extrapolation_bc=Line()) for iyk = 1:np.ny, ihki = 1:np.nhi]
   Vk_ini = fill(NaN64,size(M.Vk[1]))
+  hk_ini = fill(NaN64,size(M.gke.h[1]))
+  ck_ini = fill(NaN64,size(M.gke.c[1]))
+  xk_ini = fill(NaN64,size(M.gke.x′[1]))
   for (ixp,xp) in enumerate(np.x_grd)
     for (ixk,xk) in enumerate(np.x_grd)
       for (iyk,yk) in enumerate(np.y_grd)
@@ -229,10 +235,14 @@ function Vk_to_Vkini(M)
           tp = M.gp.t[1][ixp,ixk,iyk,ihki]
           xp′ = M.gp.x′[1][ixp,ixk,iyk,ihki]
           Vk_ini[ixp,ixk,iyk,ihki] = Vk_itp[iyk,ihki](xp′,xk+tp)
+          ck_ini[ixp,ixk,iyk,ihki] = ck_itp[iyk,ihki](xp′,xk+tp)
+          xk_ini[ixp,ixk,iyk,ihki] = xk_itp[iyk,ihki](xp′,xk+tp)
+          hk_ini[ixp,ixk,iyk,ihki] = hk_itp[iyk,ihki](xp′,xk+tp)
+
         end
       end
     end
   end
 
-  return Vk_ini
+  return Vk_ini, ck_ini, xk_ini, hk_ini
 end
