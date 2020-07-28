@@ -260,14 +260,14 @@ function lowest_pareto(Mcom,Mnocom)
     for ixk = 1:np.nx
         for ixp = 1:np.nx
             for iy = 1:np.ny,ihi=1:np.nhi
-                ind = findfirst(Vk[ixk,ixp,iy,ihi,:] .>= Vk_ini[ixk,ixp,iy,ihi])
+                ind = findfirst(Vk[ixp,ixk,iy,ihi,:] .>= Vk_ini[ixp,ixk,iy,ihi])
                 if ind !=nothing
-                  ikpref[ixk,ixp] = ind
+                  ikpref[ixp,ixk] = ind
                 end
 
-                ind = findlast(Vp[ixk,ixp,iy,ihi,:] .>= Mnocom.Vp[1][ixk,ixp,iy,ihi])
+                ind = findlast(Vp[ixp,ixk,iy,ihi,:] .>= Mnocom.Vp[1][ixp,ixk,iy,ihi])
                 if ind !=nothing
-                 ippref[ixk,ixp] = ind
+                 ippref[ixp,ixk] = ind
                 end
             end
         end
