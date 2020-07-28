@@ -4,7 +4,7 @@ function SolveVc2(np,mp)
     xf_pol = fill(-1.0,np.nxf,np.ny,np.nh,np.no,np.ns,np.nθ)
     ihkn_pol = fill(-1,np.nxf,np.ny,np.nh,np.no,np.ns,np.nθ)
     val = fill(-1.0,np.nxf,np.ny,np.nh,np.no,np.ns,np.nθ)
-    vtmp = fill(-Inf64,np.nh,np.ntc)
+    vtmp = fill(-Inf64,np.nh,np.nxc)
     ia = np.na
     for (ixf,xf) in enumerate(np.xf_grd)
       for (iyk,yk) in enumerate(np.y_grd)
@@ -49,7 +49,7 @@ function SolveVc1(np,mp,valnxt)
   xp′_pol = fill(-1.0,np.nxf,np.ny,np.nhi,np.nθ)
   ihkn_pol = fill(-1,np.nxf,np.ny,np.nhi,np.nθ)
   val = fill(-1.0,np.nxf,np.ny,np.nhi,np.nθ)
-  vtmp = fill(-Inf64,np.nh,np.ntc,np.nxc)
+  vtmp = fill(-Inf64,np.nh,np.nxc,np.nxc)
   ia = np.na
 
   @assert np.no == 1 # Only works with one ownership status
