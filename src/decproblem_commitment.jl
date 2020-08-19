@@ -284,7 +284,11 @@ finds the housing choice for a kid using the lowest pareto-weight he is willing 
 function housing_commitment_kid(ikpref::Array{Int64},Mcom)
     np = Mcom.np
     hk = fill(NaN64,(np.nx,np.nx,np.ny,np.nhi))
+    ck = fill(NaN64,(np.nx,np.nx,np.ny,np.nhi))
+    Vk = fill(NaN64,(np.nx,np.nx,np.ny,np.nhi))
 
+    cp = fill(NaN64,(np.nx,np.nx,np.ny,np.nhi))
+    Vp = fill(NaN64,(np.nx,np.nx,np.ny,np.nhi))
     for (ixp,xp) in enumerate(np.x_grd)
       for (ixk,xk) in enumerate(np.x_grd)
         for (iyk,yk) in enumerate(np.y_grd)
@@ -292,11 +296,15 @@ function housing_commitment_kid(ikpref::Array{Int64},Mcom)
               iθ = ikpref[ixp,ixk,iyk,ihki]
               if iθ > 0
                   hk[ixp,ixk,iyk,ihki] = np.h_grd[Mcom.ihkn[1][ixk+ixp,iyk,ihki,iθ]]
+                  ck[ixp,ixk,iyk,ihki] = Mcom.ck[1][ixk+ixp,iyk,ihki,iθ]
+                  Vk[ixp,ixk,iyk,ihki] = Mcom.Vk[1][ixk,ixp,iyk,ihki,iθ]
+                  cp[ixp,ixk,iyk,ihki] = Mcom.cp[1][ixk+ixp,iyk,ihki,iθ]
+                  Vp[ixp,ixk,iyk,ihki] = Mcom.Vp[1][ixk,ixp,iyk,ihki,iθ]
               end
           end
         end
       end
     end
 
-    return hk
+    return hk,ck,Vk, cp,Vp
 end
