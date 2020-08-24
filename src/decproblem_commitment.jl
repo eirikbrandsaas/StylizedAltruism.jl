@@ -56,17 +56,18 @@ function SolveVc1(np,mp,valnxt)
 
   vnxt = [LinearInterpolation((np.xf_grd,),valnxt[:,iyk,ihkn,io,is,iθ],extrapolation_bc=Line()) for iyk = 1:np.ny, ihkn = 1:np.nh, io = 1:np.no, is=1:np.ns, iθ = 1:np.nθ]
 
+  for (iθ,θ) in enumerate(np.θ_grd)
+  Vnxt = vnxt[:,:,:,:,iθ] # Don't need to find this every fyucking iteration =)
   for (ixf,xf) in enumerate(np.xf_grd)
     for (iyk,yk) in enumerate(np.y_grd)
       for (ihk,hk) in enumerate(np.hi_grd)
-        for (iθ,θ) in enumerate(np.θ_grd)
           ## Loop over possible choices
           vtmp .= -1e64
           wk = StylizedAltruism.income(yk,ia,np)
-          #=Threads.@threads=# for (ihkn,hkn) in collect(enumerate(np.h_grd))
+          for (ihkn,hkn) in collect(enumerate(np.h_grd))
             for (ick,ck) in enumerate(np.xc_grd)
               for (ixpn,xpn) in enumerate(np.xc_grd)
-                 vtmp[ihkn,ick,ixpn] = Vc1_eval(θ,xf+wk,ck,hkn,xpn,iyk,ihkn,mp,np,vnxt[:,:,:,:,iθ])
+                 vtmp[ihkn,ick,ixpn] = Vc1_eval(θ,xf+wk,ck,hkn,xpn,iyk,ihkn,mp,np,Vnxt)
               end
             end
           end
