@@ -196,8 +196,8 @@ function Vc_to_VkVp(Mc::ModelCommitment)
               valp += mp.β*StylizedAltruism.utilp(cp2,mp.γ)
               valp += mp.η*valk
 
-              Mc.Vk[1][ixk,ixp,iyk,ihki,iθ] = valk
-              Mc.Vp[1][ixk,ixp,iyk,ihki,iθ] = valp
+              Mc.Vk[1][ixp,ixk,iyk,ihki,iθ] = valk
+              Mc.Vp[1][ixp,ixk,iyk,ihki,iθ] = valp
 
           end
         end
@@ -298,9 +298,9 @@ function housing_commitment_kid(ikpref::Array{Int64},Mcom)
               if iθ > 0
                   hk[ixp,ixk,iyk,ihki] = np.h_grd[Mcom.ihkn[1][ixk+ixp,iyk,ihki,iθ]]
                   ck[ixp,ixk,iyk,ihki] = Mcom.ck[1][ixk+ixp,iyk,ihki,iθ]
-                  Vk[ixp,ixk,iyk,ihki] = Mcom.Vk[1][ixk,ixp,iyk,ihki,iθ]
+                  Vk[ixp,ixk,iyk,ihki] = Mcom.Vk[1][ixp,ixk,iyk,ihki,iθ]
                   cp[ixp,ixk,iyk,ihki] = Mcom.cp[1][ixk+ixp,iyk,ihki,iθ]
-                  Vp[ixp,ixk,iyk,ihki] = Mcom.Vp[1][ixk,ixp,iyk,ihki,iθ]
+                  Vp[ixp,ixk,iyk,ihki] = Mcom.Vp[1][ixp,ixk,iyk,ihki,iθ]
               end
           end
         end
