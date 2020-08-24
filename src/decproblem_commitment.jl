@@ -94,7 +94,7 @@ function SolveVc1(np,mp,valnxt)
 end
 
 
-function Vc1_eval(θ,xf,ck,hkn,xpn,iyk,ihkn,mp,np,vnxt)
+function Vc1_eval(θ::Float64,xf::Float64,ck::Float64,hkn::Float64,xpn::Float64,iyk::Int64,ihkn::64,mp,np,vnxt::Array{Interpolations.Extrapolation{Float64,1,Interpolations.GriddedInterpolation{Float64,1,Float64,Gridded{Linear},Tuple{Array{Float64,1}}},Gridded{Linear},Line{Nothing}},4})
   cp = StylizedAltruism.cp_bc(xf-ck-hkn,xpn,0.0,mp.rf)
   iokn = 1
 
